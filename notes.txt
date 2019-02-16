@@ -22,3 +22,28 @@
     - references to $i get substituted by m[i]
     - references to fn get substituted by e[n]
 3) Replace any ?fn in enhanced path with e[n]
+
+Circle less wedge:
+<draw:custom-shape draw:layer="layout" draw:style-name="gr4" draw:text-style-name="P1" svg:height="4.2cm" svg:width="4.2cm" svg:x="12.2cm" svg:y="11.4cm">
+<text:p></text:p>
+<draw:enhanced-geometry 
+    draw:enhanced-path="V 0 0 21600 21600 ?f5 ?f7 ?f1 ?f3 L 10800 10800 Z N"
+    draw:glue-point-type="segments"
+    draw:modifiers="-122.43640282064 0"
+    draw:type="mso-spt100">
+    <draw:equation draw:formula="10800*cos($0 *(pi/180))" draw:name="f0"></draw:equation>
+    <draw:equation draw:formula="?f0 +10800" draw:name="f1"></draw:equation>
+    <draw:equation draw:formula="10800*sin($0 *(pi/180))" draw:name="f2"></draw:equation>
+    <draw:equation draw:formula="?f2 +10800" draw:name="f3"></draw:equation>
+    <draw:equation draw:formula="10800*cos($1 *(pi/180))" draw:name="f4"></draw:equation>
+    <draw:equation draw:formula="?f4 +10800" draw:name="f5"></draw:equation>
+    <draw:equation draw:formula="10800*sin($1 *(pi/180))" draw:name="f6"></draw:equation>
+    <draw:equation draw:formula="?f6 +10800" draw:name="f7"></draw:equation>
+    <draw:handle draw:handle-polar="10800 10800" draw:handle-position="10800 $0" draw:handle-radius-range-maximum="10800" draw:handle-radius-range-minimum="10800"></draw:handle>
+    <draw:handle draw:handle-polar="10800 10800" draw:handle-position="10800 $1" draw:handle-radius-range-maximum="10800" draw:handle-radius-range-minimum="10800"></draw:handle>
+</draw:enhanced-geometry></draw:custom-shape>
+
+
+Possible functions in formulae:
+if(c,x,y)
+	conditional testing: if c is greater than zero then the result of evaluating x is returned, otherwise the result of evaluating y is returned. 

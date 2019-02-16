@@ -3,9 +3,12 @@
 
 import zipfile
 import re
+import math
 import svgwrite
 from bs4 import BeautifulSoup
-from BackgroundParser import BackgroundParser
+from FillFactory import FillFactory
+from ShapeParser import ShapeParser
+from StrokeFactory import StrokeFactory
 
 DPCM = 37.7953
 
@@ -18,6 +21,7 @@ class ODPPresentation:
         self.styles = BeautifulSoup(pres_archive.read('styles.xml'), "lxml")
         self.content = BeautifulSoup(pres_archive.read('content.xml'), "lxml")
 
+
     def get_document_size(self):
         mp_tag = self.styles.find("office:master-styles").find("style:master-page")
         page_layout = mp_tag.get("style:page-layout-name")
@@ -28,115 +32,95 @@ class ODPPresentation:
         return (page_width, page_height)
 
 
-    def render_shape(self, dwg, shape):
-        # Just doing a single custom shape at the moment, plus ignoring any text in the custom shape
-        geom = shape.find("draw:enhanced-geometry")
-        # Parse modifiers
-        if "draw:modifiers" in geom.attrs:
-            modifier_str = geom.attrs["draw:modifiers"]
-            modifiers = [float(x) for x in modifier_str.split(" ")]
-        else:
-            modifiers = []
-        # Parse and evaluate equations
-        equations = geom.find_all({"draw:equation"})
-        eq_results = []
-        for equation in equations:
-            raw_formula = equation.attrs["draw:formula"]
-            # Replace $n with modifiers[n], ?fi with eq_results[i]
-            sub_groups = re.split(r'([\$f?]+[0-9]+)', raw_formula)
-            for i in range(len(sub_groups)):
-                if sub_groups[i] and sub_groups[i][0] == "$":
-                    sub_groups[i] = "modifiers[" + sub_groups[i][1:] + "]"
-                elif sub_groups[i] and sub_groups[i][0] == "?":
-                    sub_groups[i] = "eq_results[" + sub_groups[i][2:] + "]"
-            sub_formula = ''.join(sub_groups)
-            eq_results.append(float(eval(sub_formula)))
-
-        print(eq_results)
-        print("-----------")
-
-        # Create SVG element around the bounds of the custom shape
-        shape_svg_x = float(re.sub(r'[^0-9.]', '', str(shape["svg:x"])))
-        shape_svg_y = float(re.sub(r'[^0-9.]', '', str(shape["svg:y"])))
-        shape_svg_w = float(re.sub(r'[^0-9.]', '', str(shape["svg:width"])))
-        shape_svg_h = float(re.sub(r'[^0-9.]', '', str(shape["svg:height"])))
-        shape_svg = dwg.svg(x=shape_svg_x, y=shape_svg_y, width=shape_svg_w, height=shape_svg_h,
-                            viewBox=(geom["svg:viewbox"]), preserveAspectRatio="none")
-
-        # Process enhanced geometry and add shape to bounding SVG
-        # COMMAND REFERENCE:
-        # http://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-part1.html#__RefHeading__1417000_253892949
-        #  ODP COMMAND              ODP PARAMS                     SVG COMMAND
-        #  A = arcto                (x1 y1 x2 y2 x3 y3 x4 y4)+     Write*
-        #  B = arc                  (x1 y1 x2 y2 x3 y3 x4 y4)+     Write*
-        #  C = curveto              (x1 y1 x2 y2 x y)+             C (x1 y1 x2 y2 x y)+
-        #  F = nofill               ()                             SVG params
-        #  L = lineto               (x y)+                         L (x y)+
-        #  M = moveto               (x y)+                         M (x y)+
-        #  N = endpath              ()                             Z???
-        #  Q = quadratic-curveto    (x1 y1 x y)+                   Q (x1 y1 x y)+
-        #  S = nostroke             ()                             SVG params
-        #  T = angle-ellipseto      (x y w h t0 t1)+               Write %
-        #  U = angle-ellipse        (x y w h t0 t1)+               Write %
-        #  V = clockwise-arc        (x1 y1 x2 y2 x3 y3 x y)+       Write *
-        #  W = clockwise-arcto      (x1 y1 x2 y2 x3 y3 x y)+       Write *
-        #  X = elliptical-quadrantx (x y)+                         Write %
-        #  Y = elliptical-quadranty (x y)+                         Write %
-        #  Z = closepath            ()                             Z
-
-        # A, B, V, W will share same code
-        # T, U, X, Y will share same code
-
-        # Step 0 - perform substitutions
-        # Step 1 - split string into sections beginning with command letter i.e. [a-zA-Z (0-9.- )*]
-        # Step 2 - translate sections from ODP grammar to SVG grammar
-        # [[a-zA-Z][0-9 -.]*]*
-
-        # Step 0 - perform substitutions
-
-
-        # Step 1 - split string into command sections
-        path_sections = re.findall(r'[a-zA-Z][?\$f0-9 -.]*', geom["draw:enhanced-path"])
-
-        # Step 2 - translate sections from ODP grammar to SVG equivalent
-        svg_path = dwg.path(fill='#00ffff')
-        for section in path_sections:
-            # Replace any variables in section
-            print("Section pre: " + section)
-            section_groups = section.split(" ")
-            for i in range(len(section_groups)):
-                print(section_groups[i])
-                if section_groups[i] and section_groups[i][0] == "$":
-                    section_groups[i] = str(eval("modifiers[" + section_groups[i][1:] + "]"))
-                    print("Now: " + str(section_groups[i]))
-                elif section_groups[i] and section_groups[i][0] == "?":
-                    section_groups[i] = str(eval("eq_results[" + section_groups[i][2:] + "]"))
-                    print("Now: "+ str(section_groups[i]))
-            section = ' '.join(section_groups)
-            print(section)
-            if section[0] in ["C", "L", "M", "Z"]:
-                svg_path.push(section)
-            elif section[0] in ["N"]:
-                pass
-            elif section[0] in ["F", "S"]:
-                pass
-            elif section[0] in ["A", "B", "V", "W"]:
-                pass
-            elif section[0] in ["T", "U", "X", "Y"]:
-                pass
-            else:
-                print("Unrecognised command: " + section)
-        shape_svg.add(svg_path)
-        # Add custom shape to main drawing
-        dwg.add(shape_svg)
-
-
     def generate_page(self, dwg, page):
-        c_shapes = page.find_all({"draw:custom-shape"})
-        for c_shape in c_shapes:
-            self.render_shape(dwg, c_shape)
+        page_items = page.find_all(recursive=False)
+        for item in page_items:
+            if item.name == "draw:custom-shape":
+                ShapeParser.render_shape(dwg, self, item)
+            elif item.name == "draw:frame":
+                frame_attrs = item.attrs
+                # draw:frame might contain something other than an image
+                if item.find("draw:image"):
+                    # These can also have a stroke...
+                    image_href = item.find("draw:image").attrs["xlink:href"]
+                    # Extract image to data store
+                    pres_archive = zipfile.ZipFile(self.url, 'r')
+                    pres_archive.extract(image_href, self.data_store)
+                    img_x = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:x"]))
+                    img_y = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:y"]))
+                    img_w = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:width"]))
+                    img_h = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:height"]))
+                    dwg.add(dwg.image(self.data_store + image_href,\
+                        insert=(img_x, img_y), size=(img_w, img_h),\
+                        preserveAspectRatio="none"))
+                    frame = dwg.rect(insert=(img_x, img_y), size=(img_w, img_h), fill='none')
+                    StrokeFactory.stroke(self, dwg, item, frame, 1)
+                    dwg.add(frame)
+            elif item.name == "draw:line":
+                line_x1 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:x1"]))
+                line_y1 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:y1"]))
+                line_x2 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:x2"]))
+                line_y2 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:y2"]))
+                line = dwg.line(start=(line_x1, line_y1), end=(line_x2, line_y2))
+                StrokeFactory.stroke(self, dwg, item, line, 1)
+                dwg.add(line)
+            elif item.name == "draw:path":
+                path_w = float(re.sub(r'[^0-9.]', '', item.attrs["svg:width"]))
+                path_h = float(re.sub(r'[^0-9.]', '', item.attrs["svg:height"]))
+                path_vb = [int(x) for x in item.attrs["svg:viewbox"].split()]
+                # TODO: Check assumption - this is always scaled equally on both axes
+                path = dwg.path(d=item.attrs["svg:d"], fill='none')
+                if "svg:x" in item.attrs and "svg:y" in item.attrs:
+                    path.translate(float(re.sub(r'[^0-9.]', '', item.attrs["svg:x"])),\
+                        float(re.sub(r'[^0-9.]', '', item.attrs["svg:y"])))
+                elif "draw:transform" in item.attrs:
+                    # TODO: Refactor this later (common code with shape parser)
+                    t_params = [x.strip() for x in re.split(r'(\([-.a-zA-Z%0-9, ]+\))', \
+                        item.attrs["draw:transform"])]
+                    for i in reversed(range(int(len(t_params)/2))):
+                        if t_params[2*i] == "translate":
+                            t_coords = [re.sub(r'[^0-9.]', '', x) for x in t_params[2*i+1][1:-1].split()]
+                            path.translate(t_coords[0], t_coords[1])
+                        elif t_params[2*i] == "rotate":
+                            path.rotate(math.degrees(-float(t_params[2*i+1][1:-1])))
+                        else:
+                            print("Unexpected transformation: " + t_params[2*i] + " " + t_params[2*i+1])
 
-        # TODO: Need to see how things work with reflections and rotations of shapes...
+                path_scale = path_w / (path_vb[2]-path_vb[0])
+                path.scale(path_scale)
+                # TODO: See how dashed paths and end markers for paths work
+                StrokeFactory.stroke(self, dwg, item, path, 1/path_scale)
+                dwg.add(path)
+            elif item.name == "draw:polyline":
+                print(item.attrs)
+                polyline_w = float(re.sub(r'[^0-9.]', '', item.attrs["svg:width"]))
+                polyline_h = float(re.sub(r'[^0-9.]', '', item.attrs["svg:height"]))
+                polyline_vb = [int(x) for x in item.attrs["svg:viewbox"].split()]
+                # TODO: Check assumption - this is always scaled equally on both axes
+                polyline_pts = item.attrs["draw:points"].replace(',', ' ').split()
+                polyline_d = "M " + ' '.join(polyline_pts[0:2]) + " L " + ' '.join(polyline_pts[2:])
+                polyline = dwg.path(d=polyline_d, fill='none')
+                if "draw:transform" in item.attrs:
+                    # TODO: Refactor this later (common code with shape parser)
+                    t_params = [x.strip() for x in re.split(r'(\([-.a-zA-Z%0-9, ]+\))', \
+                        item.attrs["draw:transform"])]
+                    for i in reversed(range(int(len(t_params)/2))):
+                        if t_params[2*i] == "translate":
+                            t_coords = [re.sub(r'[^0-9.]', '', x) for x in t_params[2*i+1][1:-1].split()]
+                            polyline.translate(t_coords[0], t_coords[1])
+                        elif t_params[2*i] == "rotate":
+                            polyline.rotate(math.degrees(-float(t_params[2*i+1][1:-1])))
+                        else:
+                            print("Unexpected transformation: " + t_params[2*i] + " " + t_params[2*i+1])
+
+                polyline_scale = polyline_w / (polyline_vb[2]-polyline_vb[0])
+                polyline.scale(polyline_scale)
+                # TODO: See how dashed polylines and end markers for polylines work
+                StrokeFactory.stroke(self, dwg, item, polyline, 1/polyline_scale)
+                dwg.add(polyline)
+
+            elif item.name == "draw:polygon":
+                print("Polygons are not yet supported - I'm getting there as fast as I can!")
 
     def to_svg(self):
         # Create SVG drawing of correct size
@@ -147,12 +131,20 @@ class ODPPresentation:
         dwg = svgwrite.Drawing(size=drawing_size, viewBox=(view_box))
 
         # Create master page background
-        BackgroundParser.render(dwg, self, d_width, d_height)
+        mp_tag = self.styles.find("office:master-styles").find("style:master-page")
+        draw_style = mp_tag.get("draw:style-name")
+        style_tag = self.styles.find("office:automatic-styles")\
+            .find({"style:style"}, {"style:name": draw_style})
+        attrs = style_tag.find("style:drawing-page-properties").attrs
+        bg_rect = dwg.rect((0, 0), (d_width, d_height))
+        FillFactory.fill(dwg, bg_rect, self, attrs, d_width, d_height, style_tag)
+        dwg.add(bg_rect)
 
         # Process first page
         pages = self.content.find_all({"draw:page"})
         self.generate_page(dwg, pages[0])
         return dwg.tostring()
+
 
     def to_html(self, output):
         out_file = open(output, 'w')
@@ -169,6 +161,7 @@ class ODPPresentation:
         ''')
         out_file.close()
 
+
 if __name__ == "__main__":
-    ODP_PRES = ODPPresentation('./files/circle_rectangle.odp', './store/')
+    ODP_PRES = ODPPresentation('./files/lines.odp', './store/')
     ODP_PRES.to_html('./test.html')
