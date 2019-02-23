@@ -5,6 +5,7 @@ import re
 import math
 from FillFactory import FillFactory
 from StrokeFactory import StrokeFactory
+from ODPFunctions import units_to_float
 
 class ShapeParser():
 
@@ -68,16 +69,16 @@ class ShapeParser():
         else:
             vb_bounds = [0, 0, 21600, 21600]
         if "svg:x" in shape.attrs:
-            base_x = float(re.sub(r'[^0-9.]', '', str(shape["svg:x"])))
+            base_x = units_to_float(str(shape["svg:x"]))
         else:
             base_x = 0.0
         if "svg:y" in shape.attrs:
-            base_y = float(re.sub(r'[^0-9.]', '', str(shape["svg:y"])))
+            base_y = units_to_float(str(shape["svg:y"]))
         else:
             base_y = 0.0
-        scale_x = float(re.sub(r'[^0-9.]', '', str(shape["svg:width"]))) / \
+        scale_x = units_to_float(str(shape["svg:width"])) / \
             (vb_bounds[2] - vb_bounds[0])
-        scale_y = float(re.sub(r'[^0-9.]', '', str(shape["svg:height"]))) / \
+        scale_y = units_to_float(str(shape["svg:height"])) / \
             (vb_bounds[3] - vb_bounds[1])
         if "draw:mirror-horizontal" in geom.attrs and geom.attrs["draw:mirror-horizontal"] == "true":
             x_adj = vb_bounds[2] - vb_bounds[0]
@@ -288,8 +289,8 @@ class ShapeParser():
             .find({"style:style"}, {"style:name": shape["draw:style-name"]})
         attrs = style_tag.find("style:graphic-properties").attrs
         FillFactory.fill(dwg, shape_path, pres, attrs, \
-            float(re.sub(r'[^0-9.]', '', str(shape["svg:width"]))), \
-            float(re.sub(r'[^0-9.]', '', str(shape["svg:height"]))), style_tag)
+            units_to_float(str(shape["svg:width"])), \
+            units_to_float(str(shape["svg:height"])), style_tag)
 
         # Apply transformation to shape if needed
         if "draw:transform" in shape.attrs:

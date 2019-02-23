@@ -3,8 +3,11 @@
 
 import math
 import re
+from ODPFunctions import units_to_float
 
 class StrokeFactory():
+
+    # TODO: Include default styles from styles.xml, office:style / style:default-style (need to look at style:family...)
 
     @classmethod
     def stroke(cls, pres, dwg, odp_node, svg_elt, scale_factor):
@@ -28,7 +31,7 @@ class StrokeFactory():
             else:
                 continue_descent = False
         if stroke_params["draw:stroke"] in ["solid", "dash"]:
-            stroke_width = float(re.sub(r'[^0-9.]', '', str(stroke_params["svg:stroke-width"])))
+            stroke_width = units_to_float(str(stroke_params["svg:stroke-width"]))
             if stroke_width == 0.0:
                 stroke_width = 0.01
             stroke_width = stroke_width * scale_factor
@@ -47,7 +50,7 @@ class StrokeFactory():
             if gap_length[-1] == "%":
                 gap_length = stroke_width * int(gap_length[:-1])/100
             else:
-                gap_length = float(re.sub(r'[^0-9.]', '', str(gap_length))) * scale_factor
+                gap_length = units_to_float(str(gap_length)) * scale_factor
             if "draw:dots1-length" in dash_node.attrs:
                 dots1_length = dash_node["draw:dots1-length"]
             else:
@@ -55,7 +58,7 @@ class StrokeFactory():
             if dots1_length[-1] == "%":
                 dots1_length = stroke_width * int(dots1_length[:-1])/100
             else:
-                dots1_length = float(re.sub(r'[^0-9.]', '', str(dots1_length))) * scale_factor
+                dots1_length = units_to_float(str(dots1_length)) * scale_factor
             for i in range(int(dash_node["draw:dots1"])):
                 dash_array.append(dots1_length)
                 dash_array.append(gap_length)
@@ -67,7 +70,7 @@ class StrokeFactory():
                 if dots2_length[-1] == "%":
                     dots2_length = stroke_width * int(dots2_length[:-1])/100
                 else:
-                    dots2_length = float(re.sub(r'[^0-9.]', '', str(dots2_length))) * scale_factor
+                    dots2_length = units_to_float(str(dots2_length)) * scale_factor
                 for j in range(int(dash_node["draw:dots2"])):
                     dash_array.append(dots2_length)
                     dash_array.append(gap_length)
@@ -76,16 +79,16 @@ class StrokeFactory():
         # Add start and end markers to lines
         if odp_node.name in ["draw:line"]:
             line_angle = math.degrees(math.atan2(\
-                float(re.sub(r'[^0-9.]', '', odp_node.attrs["svg:y2"])) - \
-                float(re.sub(r'[^0-9.]', '', odp_node.attrs["svg:y1"])),\
-                float(re.sub(r'[^0-9.]', '', odp_node.attrs["svg:x2"])) - \
-                float(re.sub(r'[^0-9.]', '', odp_node.attrs["svg:x1"]))))
+                units_to_float(odp_node.attrs["svg:y2"]) - \
+                units_to_float(odp_node.attrs["svg:y1"]),\
+                units_to_float(odp_node.attrs["svg:x2"]) - \
+                units_to_float(odp_node.attrs["svg:x1"])))
             markers = [None, None, None]
             if "draw:marker-start" in stroke_params:
                 s_marker_style = pres.styles.find("office:styles")\
                     .find({"draw:marker"}, {"draw:name": stroke_params["draw:marker-start"]})
                 s_marker_vb = s_marker_style["svg:viewbox"].split()
-                s_marker_w = float(re.sub(r'[^0-9.]', '', stroke_params["draw:marker-start-width"]))
+                s_marker_w = units_to_float(stroke_params["draw:marker-start-width"])
                 s_marker_vb_w = int(s_marker_vb[2]) - int(s_marker_vb[0])
                 s_marker_vb_h = int(s_marker_vb[3]) - int(s_marker_vb[1])
                 s_marker_d = s_marker_style["svg:d"]
@@ -106,7 +109,7 @@ class StrokeFactory():
                 e_marker_style = pres.styles.find("office:styles")\
                     .find({"draw:marker"}, {"draw:name": stroke_params["draw:marker-end"]})
                 e_marker_vb = e_marker_style["svg:viewbox"].split()
-                e_marker_w = float(re.sub(r'[^0-9.]', '', stroke_params["draw:marker-end-width"]))
+                e_marker_w = units_to_float(stroke_params["draw:marker-end-width"])
                 e_marker_vb_w = int(e_marker_vb[2]) - int(e_marker_vb[0])
                 e_marker_vb_h = int(e_marker_vb[3]) - int(e_marker_vb[1])
                 e_marker_d = e_marker_style["svg:d"]

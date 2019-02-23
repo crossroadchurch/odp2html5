@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 from FillFactory import FillFactory
 from ShapeParser import ShapeParser
 from StrokeFactory import StrokeFactory
+from TextBoxParser import TextBoxParser
+from ODPFunctions import units_to_float
 
 DPCM = 37.7953
 
@@ -35,6 +37,7 @@ class ODPPresentation:
     def generate_page(self, dwg, page):
         page_items = page.find_all(recursive=False)
         for item in page_items:
+            # print(item.name)
             if item.name == "draw:custom-shape":
                 ShapeParser.render_shape(dwg, self, item)
             elif item.name == "draw:frame":
@@ -46,33 +49,34 @@ class ODPPresentation:
                     # Extract image to data store
                     pres_archive = zipfile.ZipFile(self.url, 'r')
                     pres_archive.extract(image_href, self.data_store)
-                    img_x = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:x"]))
-                    img_y = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:y"]))
-                    img_w = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:width"]))
-                    img_h = float(re.sub(r'[^0-9.]', '', frame_attrs["svg:height"]))
+                    img_x = units_to_float(frame_attrs["svg:x"])
+                    img_y = units_to_float(frame_attrs["svg:y"])
+                    img_w = units_to_float(frame_attrs["svg:width"])
+                    img_h = units_to_float(frame_attrs["svg:height"])
                     dwg.add(dwg.image(self.data_store + image_href,\
                         insert=(img_x, img_y), size=(img_w, img_h),\
                         preserveAspectRatio="none"))
                     frame = dwg.rect(insert=(img_x, img_y), size=(img_w, img_h), fill='none')
                     StrokeFactory.stroke(self, dwg, item, frame, 1)
                     dwg.add(frame)
+                elif item.find("draw:text-box"):
+                    TextBoxParser.parse_textbox(self, dwg, item)
             elif item.name == "draw:line":
-                line_x1 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:x1"]))
-                line_y1 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:y1"]))
-                line_x2 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:x2"]))
-                line_y2 = float(re.sub(r'[^0-9.]', '', item.attrs["svg:y2"]))
+                line_x1 = units_to_float(item.attrs["svg:x1"])
+                line_y1 = units_to_float(item.attrs["svg:y1"])
+                line_x2 = units_to_float(item.attrs["svg:x2"])
+                line_y2 = units_to_float(item.attrs["svg:y2"])
                 line = dwg.line(start=(line_x1, line_y1), end=(line_x2, line_y2))
                 StrokeFactory.stroke(self, dwg, item, line, 1)
                 dwg.add(line)
             elif item.name == "draw:path":
-                path_w = float(re.sub(r'[^0-9.]', '', item.attrs["svg:width"]))
-                path_h = float(re.sub(r'[^0-9.]', '', item.attrs["svg:height"]))
+                path_w = units_to_float(item.attrs["svg:width"])
                 path_vb = [int(x) for x in item.attrs["svg:viewbox"].split()]
                 # TODO: Check assumption - this is always scaled equally on both axes
                 path = dwg.path(d=item.attrs["svg:d"], fill='none')
                 if "svg:x" in item.attrs and "svg:y" in item.attrs:
-                    path.translate(float(re.sub(r'[^0-9.]', '', item.attrs["svg:x"])),\
-                        float(re.sub(r'[^0-9.]', '', item.attrs["svg:y"])))
+                    path.translate(units_to_float(item.attrs["svg:x"]),\
+                        units_to_float(item.attrs["svg:y"]))
                 elif "draw:transform" in item.attrs:
                     # TODO: Refactor this later (common code with shape parser)
                     t_params = [x.strip() for x in re.split(r'(\([-.a-zA-Z%0-9, ]+\))', \
@@ -92,9 +96,7 @@ class ODPPresentation:
                 StrokeFactory.stroke(self, dwg, item, path, 1/path_scale)
                 dwg.add(path)
             elif item.name == "draw:polyline":
-                print(item.attrs)
-                polyline_w = float(re.sub(r'[^0-9.]', '', item.attrs["svg:width"]))
-                polyline_h = float(re.sub(r'[^0-9.]', '', item.attrs["svg:height"]))
+                polyline_w = units_to_float(item.attrs["svg:width"])
                 polyline_vb = [int(x) for x in item.attrs["svg:viewbox"].split()]
                 # TODO: Check assumption - this is always scaled equally on both axes
                 polyline_pts = item.attrs["draw:points"].replace(',', ' ').split()
@@ -120,13 +122,47 @@ class ODPPresentation:
                 dwg.add(polyline)
 
             elif item.name == "draw:polygon":
-                print("Polygons are not yet supported - I'm getting there as fast as I can!")
+                
+                print(item.attrs)
+                polygon_w = units_to_float(item.attrs["svg:width"])
+                polygon_h = units_to_float(item.attrs["svg:height"])
+                polygon_vb = [int(x) for x in item.attrs["svg:viewbox"].split()]
+                # TODO: Check assumption - this is always scaled equally on both axes
+                polygon_pts = item.attrs["draw:points"].replace(',', ' ').split()
+                polygon_d = "M " + ' '.join(polygon_pts[0:2]) + " L " + ' '.join(polygon_pts[2:]) + ' Z'
+                print(polygon_d)
+                # TODO: Add in fill
+                polygon = dwg.path(d=polygon_d, fill='none')
+                if "svg:x" in item.attrs and "svg:y" in item.attrs:
+                    polygon.translate(units_to_float(item.attrs["svg:x"]),\
+                        units_to_float(item.attrs["svg:y"]))
+                elif "draw:transform" in item.attrs:
+                    # TODO: Refactor this later (common code with shape parser)
+                    t_params = [x.strip() for x in re.split(r'(\([-.a-zA-Z%0-9, ]+\))', \
+                        item.attrs["draw:transform"])]
+                    for i in reversed(range(int(len(t_params)/2))):
+                        if t_params[2*i] == "translate":
+                            t_coords = [re.sub(r'[^0-9.]', '', x) for x in t_params[2*i+1][1:-1].split()]
+                            polygon.translate(t_coords[0], t_coords[1])
+                        elif t_params[2*i] == "rotate":
+                            polygon.rotate(math.degrees(-float(t_params[2*i+1][1:-1])))
+                        else:
+                            print("Unexpected transformation: " + t_params[2*i] + " " + t_params[2*i+1])
+
+                polygon_scale = polygon_w / (polygon_vb[2]-polygon_vb[0])
+                polygon.scale(polygon_scale)
+                style_tag = self.content.find("office:automatic-styles")\
+                    .find({"style:style"}, {"style:name": item["draw:style-name"]})
+                attrs = style_tag.find("style:graphic-properties").attrs
+                FillFactory.fill(dwg, polygon, self, attrs, polygon_w/polygon_scale, polygon_h/polygon_scale, style_tag)
+                StrokeFactory.stroke(self, dwg, item, polygon, 1/polygon_scale)
+                dwg.add(polygon)
 
     def to_svg(self):
         # Create SVG drawing of correct size
         drawing_size = self.get_document_size()
-        d_width = float(re.sub(r'[^0-9.]', '', str(drawing_size[0])))
-        d_height = float(re.sub(r'[^0-9.]', '', str(drawing_size[1])))
+        d_width = units_to_float(str(drawing_size[0]))
+        d_height = units_to_float(str(drawing_size[1]))
         view_box = '0 0 ' + str(d_width) + ' ' + str(d_height)
         dwg = svgwrite.Drawing(size=drawing_size, viewBox=(view_box))
 
@@ -143,6 +179,7 @@ class ODPPresentation:
         # Process first page
         pages = self.content.find_all({"draw:page"})
         self.generate_page(dwg, pages[0])
+
         return dwg.tostring()
 
 
@@ -163,5 +200,5 @@ class ODPPresentation:
 
 
 if __name__ == "__main__":
-    ODP_PRES = ODPPresentation('./files/lines.odp', './store/')
+    ODP_PRES = ODPPresentation('./files/indented_text.odp', './store/')
     ODP_PRES.to_html('./test.html')

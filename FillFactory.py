@@ -9,6 +9,7 @@ import zipfile
 import math
 import re
 from PIL import Image
+from ODPFunctions import units_to_float
 
 DPCM = 37.7953
 
@@ -128,8 +129,8 @@ class FillFactory():
                 bitmap_width = e_width * (int(attrs["draw:fill-image-width"][:-1])/100)
                 bitmap_height = e_height * (int(attrs["draw:fill-image-height"][:-1])/100)
             else:
-                bitmap_width = float(re.sub(r'[^0-9.]', '', str(attrs["draw:fill-image-width"])))
-                bitmap_height = float(re.sub(r'[^0-9.]', '', str(attrs["draw:fill-image-height"])))
+                bitmap_width = units_to_float(str(attrs["draw:fill-image-width"]))
+                bitmap_height = units_to_float(str(attrs["draw:fill-image-height"]))
             if bitmap_width > 0 and bitmap_height > 0:
                 pattern_size = (bitmap_width, bitmap_height)
             else:
@@ -313,7 +314,7 @@ class FillFactory():
         hatch_node = pres.styles.find("office:styles")\
             .find({"draw:hatch"}, {"draw:name": attrs["draw:fill-hatch-name"]})
         hatch_angle = int(hatch_node["draw:rotation"])/10
-        hatch_dist = float(re.sub(r'[^0-9.]', '', str(hatch_node["draw:distance"])))
+        hatch_dist = units_to_float(str(hatch_node["draw:distance"]))
         # Print background color first
         pattern = dwg.pattern(insert=(0, 0), size=(e_width, e_height), \
                 patternUnits="userSpaceOnUse", patternContentUnits="userSpaceOnUse")
