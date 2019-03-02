@@ -7,7 +7,6 @@
 
 import zipfile
 import math
-import re
 from PIL import Image
 from ODPFunctions import units_to_float
 

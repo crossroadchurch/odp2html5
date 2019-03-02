@@ -60,7 +60,7 @@ class ODPPresentation:
                     StrokeFactory.stroke(self, dwg, item, frame, 1)
                     dwg.add(frame)
                 elif item.find("draw:text-box"):
-                    TextBoxParser.parse_textbox(self, dwg, item)
+                    TextBoxParser.visit_textbox(dwg, self, item)
             elif item.name == "draw:line":
                 line_x1 = units_to_float(item.attrs["svg:x1"])
                 line_y1 = units_to_float(item.attrs["svg:y1"])
@@ -200,5 +200,5 @@ class ODPPresentation:
 
 
 if __name__ == "__main__":
-    ODP_PRES = ODPPresentation('./files/indented_text.odp', './store/')
+    ODP_PRES = ODPPresentation('./files/lists.odp', './store/')
     ODP_PRES.to_html('./test.html')

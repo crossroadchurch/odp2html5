@@ -2,3 +2,4 @@
 !/files/.gitkeep
 /store/*
 !/store/.gitkeep
+/out/*

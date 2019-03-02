@@ -36,7 +36,7 @@ class ShapeParser():
                             'sqrt':'math.sqrt', 'if':'ShapeParser.odp_if',
                             'top':str(vb[1]), 'bottom':str(vb[3]),
                             'left':str(vb[0]), 'right':str(vb[2])}
-            sub_formula = re.sub(r'\b(\w+)\b', lambda m:replace_dict.get(m.group(1), m.group(1)), sub_formula)
+            sub_formula = re.sub(r'\b(\w+)\b', lambda m: replace_dict.get(m.group(1), m.group(1)), sub_formula)
             try:
                 eq_results.append(float(eval(sub_formula)))
             except IndexError:
