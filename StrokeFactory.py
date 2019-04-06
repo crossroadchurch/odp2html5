@@ -10,10 +10,10 @@ class StrokeFactory():
     # TODO: Include default styles from styles.xml, office:style / style:default-style (need to look at style:family...)
 
     @classmethod
-    def stroke(cls, pres, dwg, odp_node, svg_elt, scale_factor):
+    def stroke(cls, pres, dwg, odp_node, svg_elt, scale_factor, style_src):
         # Get stroke parameters from the style tree of odp_node, using the first encountered
         # instance of each parameter (i.e. prefer child style over parent style)
-        style_tag = pres.content.find("office:automatic-styles")\
+        style_tag = style_src.find("office:automatic-styles")\
             .find({"style:style"}, {"style:name": odp_node["draw:style-name"]})
         stroke_params = {}
         continue_descent = True
@@ -76,6 +76,7 @@ class StrokeFactory():
                     dash_array.append(gap_length)
             # Apply dash array to stroke
             svg_elt.dasharray(dash_array)
+
         # Add start and end markers to lines
         if odp_node.name in ["draw:line"]:
             line_angle = math.degrees(math.atan2(\
@@ -92,7 +93,7 @@ class StrokeFactory():
                 s_marker_vb_w = int(s_marker_vb[2]) - int(s_marker_vb[0])
                 s_marker_vb_h = int(s_marker_vb[3]) - int(s_marker_vb[1])
                 s_marker_d = s_marker_style["svg:d"]
-                s_ref_y = 0.3
+                s_ref_y = 0.0
                 if "draw:marker-start-center" in stroke_params:
                     if stroke_params["draw:marker-start-center"] == 'true':
                         s_ref_y = 0.5
@@ -113,7 +114,7 @@ class StrokeFactory():
                 e_marker_vb_w = int(e_marker_vb[2]) - int(e_marker_vb[0])
                 e_marker_vb_h = int(e_marker_vb[3]) - int(e_marker_vb[1])
                 e_marker_d = e_marker_style["svg:d"]
-                e_ref_y = 0.3
+                e_ref_y = 0.0
                 if "draw:marker-end-center" in stroke_params:
                     if stroke_params["draw:marker-end-center"] == 'true':
                         e_ref_y = 0.5

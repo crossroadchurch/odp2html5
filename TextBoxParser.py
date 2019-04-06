@@ -25,11 +25,13 @@ DASH_ARRAYS = {"dash": [0.4, 0.15], "dot-dash": [0.1, 0.1, 0.4, 0.1], \
 
 class TextBoxParser():
 
-    def __init__(self, dwg, pres, item, font_mgr):
+    def __init__(self, dwg, pres, item, font_mgr, v_align, style_src):
         self.dwg = dwg
         self.pres = pres
         self.item = item
         self.font_mgr = font_mgr
+        self.v_align = v_align
+        self.style_src = style_src
         self.svg_x = 0
         self.svg_y = 0
         self.svg_w = 0
@@ -43,7 +45,7 @@ class TextBoxParser():
 
 
     def populate_stack_frame(self, frame, style_name):
-        style_tag = self.pres.content.find("office:automatic-styles")\
+        style_tag = self.style_src.find("office:automatic-styles")\
             .find({"style:style"}, {"style:name": style_name})
         style_text_props = style_tag.find({"style:text-properties"}, recursive=False)
         if style_text_props:
@@ -61,22 +63,20 @@ class TextBoxParser():
 
 
     def populate_root_frame(self, frame, pres_style, draw_style):
-        # TODO: Cope with when there is no draw_style, e.g. blank title box
-        # Probably need to cope with this upstream of here
-        frame_style = self.pres.content.find("office:automatic-styles")\
+        frame_style = self.style_src.find("office:automatic-styles")\
             .find({"style:style"}, {"style:name": pres_style})
         parent_frame_style = self.pres.styles.find("office:styles")\
             .find({"style:style"}, {"style:name": frame_style["style:parent-style-name"]})
         parent_text_props = parent_frame_style.find({"style:text-properties"}, recursive=False)
         parent_para_props = parent_frame_style.find({"style:paragraph-properties"}, recursive=False)
-        frame_text_style = self.pres.content.find("office:automatic-styles")\
+        frame_text_style = self.style_src.find("office:automatic-styles")\
             .find({"style:style"}, {"style:name": draw_style})
         frame_text_props = frame_text_style.find({"style:text-properties"}, recursive=False)
         frame_para_props = frame_text_style.find({"style:paragraph-properties"}, recursive=False)
         for prop in TEXT_PROPS:
-            if prop in frame_text_props.attrs:
+            if frame_text_props and prop in frame_text_props.attrs:
                 frame[prop] = frame_text_props[prop]
-            elif prop in parent_text_props.attrs:
+            elif parent_text_props and prop in parent_text_props.attrs:
                 frame[prop] = parent_text_props[prop]
         for prop in PARA_PROPS:
             if frame_para_props and prop in frame_para_props.attrs:
@@ -210,7 +210,7 @@ class TextBoxParser():
                 first_span = tspan
                 tspan.__setitem__('dy', line_height)
             tspan.__setitem__('x', span_xs[idx])
-            bs_adj = None
+            bs_adj = 0
             if item["stack-frame"]["style:text-position"] != "normal":
                 # Adjust baseline for superscript or subscript text
                 if item["stack-frame"]["style:text-position"].split()[0] == "super":
@@ -220,9 +220,10 @@ class TextBoxParser():
                 else:
                     bs_adj = item["height"] * \
                         -units_to_float(item["stack-frame"]["style:text-position"].split()[0])/100
-                tspan.__setitem__('dy', bs_adj)
+                if bs_adj != 0:
+                    tspan.__setitem__('dy', bs_adj)
             self.textbox.add(tspan)
-            if bs_adj:
+            if bs_adj != 0:
                 # Reset baseline after superscript or subscript
                 tspan = self.dwg.tspan('\u200B', style=item["style"])
                 tspan.__setitem__('dy', -float(bs_adj))
@@ -321,7 +322,7 @@ class TextBoxParser():
                 if lt_string != prev_lt_str:
                     decor_lines.append({
                         "x": hl_x,
-                        "y": self.cur_y + line_descent - line_height/2,
+                        "y": self.cur_y + line_descent - (line_height * 0.4),
                         "width": item["width"]/DPCM,
                         "font-size": item["font-size"],
                         "decor-type": "lt-" + item["stack-frame"]["style:text-line-through-type"],
@@ -339,11 +340,11 @@ class TextBoxParser():
 
             if idx < len(space_lens):
                 hl_x += ((item["width"] + space_lens[idx]) / DPCM)
-        return line_height, first_span, highlights, decor_lines
+        return line_height, line_descent, first_span, highlights, decor_lines
 
 
     def visit_p(self, item_p):
-        # TODO: Underline, overline
+        # TODO: Underline, overline - final few variations
         p_stack_frame = self.style_stack[len(self.style_stack) - 1].copy() # shallow copy
         if "text:style-name" in item_p.attrs:
             self.populate_stack_frame(p_stack_frame, item_p["text:style-name"])
@@ -357,6 +358,7 @@ class TextBoxParser():
         line_size, line_indent = 0, 0
         queued_spans = []
         on_first_line = True
+        first_descent = 0
 
         highlights = []
         decor_lines = []
@@ -394,6 +396,14 @@ class TextBoxParser():
             # Replace all <text:tab></text:tab> tags with literal tabs
             for tab in item_span.find_all({"text:tab"}):
                 tab.replace_with("\t")
+            for line_break in item_span.find_all({"text:line-break"}):
+                line_break.replace_with("\n")
+            for fields in item_span.find_all({"presentation:date-time", "presentation:footer",\
+                "text:page-number"}):
+                # TODO: Decide whether/how to implement these properly...
+                fields.replace_with("")
+
+            print("++" + str(item_span.contents) + "++")
             span_text = ''.join(item_span.contents)
             # Cope with empty or whitespace-only spans
             if span_text.strip() == "":
@@ -438,7 +448,7 @@ class TextBoxParser():
                             "font-size": base_font_size,
                             "text": span_text[span_start:span_pos].rstrip(),
                             "stack-frame": span_stack_frame.copy()})
-                        line_h, tspan, h_lights, d_lines = self.process_line(queued_spans, \
+                        line_h, line_d, tspan, h_lights, d_lines = self.process_line(queued_spans, \
                             [line_indent, span_stack_frame["fo:margin-right"]], \
                             span_stack_frame["fo:line-height"])
                         queued_spans.clear()
@@ -448,6 +458,7 @@ class TextBoxParser():
                         if on_first_line:
                             on_first_line = False
                             first_span = tspan
+                            first_descent = line_d
                 elif next_pos == -1 and span_text[span_start:].strip() != "":
                     # End of span_text has been reached
                     size = i_font.getsize(span_text[span_start:])
@@ -465,7 +476,7 @@ class TextBoxParser():
                                 "font-size": base_font_size,
                                 "text": span_text[span_start:span_pos].rstrip(),
                                 "stack-frame": span_stack_frame.copy()})
-                        line_h, tspan, h_lights, d_lines = self.process_line(queued_spans, \
+                        line_h, line_d, tspan, h_lights, d_lines = self.process_line(queued_spans, \
                             [line_indent, span_stack_frame["fo:margin-right"]], \
                             span_stack_frame["fo:line-height"])
                         queued_spans.clear()
@@ -485,6 +496,7 @@ class TextBoxParser():
                         if on_first_line:
                             first_span = tspan
                             on_first_line = False
+                            first_descent = line_d
                     else:
                         # Just queue rest of current span
                         queued_spans.append({\
@@ -510,13 +522,14 @@ class TextBoxParser():
         # Write out any queued spans before going on to next p
         h_lights, d_lines = [], []
         if queued_spans:
-            line_h, tspan, h_lights, d_lines = self.process_line(queued_spans, \
+            line_h, line_d, tspan, h_lights, d_lines = self.process_line(queued_spans, \
                 [line_indent, span_stack_frame["fo:margin-right"]], \
                 span_stack_frame["fo:line-height"])
             queued_spans.clear()
             p_height += line_h
             if on_first_line:
                 first_span = tspan
+                first_descent = line_d
         # Process highlights and decor_lines
             for hl in h_lights:
                 highlights.append(hl)
@@ -534,23 +547,27 @@ class TextBoxParser():
 
         # Pop stack frame (p)
         self.style_stack.pop()
-        return p_height, first_span, p_stack_frame["fo:margin-bottom"], highlights, decor_lines
+        return p_height, first_descent, first_span, p_stack_frame["fo:margin-bottom"], \
+            highlights, decor_lines
 
 
     def visit_list(self, item_l, level, parent_style):
         # TODO: Bullet image
         # TODO: Relative indents
+        # TODO: Lists may begin with a text:list-header item, which is formatted as a list item but without
+        # preceding bullet or number
 
         # Load in list styles
         if "text:style-name" in item_l.attrs:
             list_style = item_l["text:style-name"]
         else:
             list_style = parent_style
-        l_styles = self.pres.content.find("office:automatic-styles")\
+        l_styles = self.style_src.find("office:automatic-styles")\
             .find({"text:list-style"}, {"style:name": list_style}).findChildren(recursive=False)
 
         l_height = 0
         first_span = None
+        first_descent = 0
         on_first_item = True
         prev_after = 0
 
@@ -573,15 +590,40 @@ class TextBoxParser():
             space_before = units_to_float(list_para_style["text:space-before"])
         else:
             space_before = 0
-        list_stack_frame["fo:margin-left"] = space_before\
-            + units_to_float(list_para_style["text:min-label-width"])
+        if "text:min-label-width" in list_para_style.attrs:
+            list_stack_frame["fo:margin-left"] = space_before\
+                + units_to_float(list_para_style["text:min-label-width"])
+        else:
+            list_stack_frame["fo:margin-left"] = space_before
         self.style_stack.append(list_stack_frame)
+
+        list_header = item_l.find({"text:list-header"})
+        if level == 0 and list_header:
+            for subheader_item in list_header.find_all({"text:p"}, recursive=False):
+                # TODO: Later add in other children of list-header
+                if subheader_item.name == "text:p":
+                    item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(subheader_item)
+                    l_height += item_h + after_i
+                    if on_first_item:
+                        first_span = tspan
+                        on_first_item = False
+                        first_descent = item_d
+                    else:
+                        if tspan:
+                            item_dy = tspan.__getitem__("dy") + prev_after
+                            tspan.__setitem__("dy", item_dy)
+                        prev_after = after_i
+                    # Process highlights and decor_lines
+                    for hl in h_lights:
+                        highlights.append(hl)
+                    for dl in d_lines:
+                        decor_lines.append(dl)
 
         bullet_count = 0
         for list_item in item_l.find_all({"text:list-item"}, recursive=False):
             for sublist_item in list_item.find_all({"text:p", "text:list"}, recursive=False):
                 if sublist_item.name == "text:list":
-                    item_h, tspan, after_i, h_lights, d_lines = \
+                    item_h, item_d, tspan, after_i, h_lights, d_lines = \
                         self.visit_list(sublist_item, (level+1), list_style)
                     l_height += item_h + after_i
                 else:
@@ -600,13 +642,13 @@ class TextBoxParser():
                     bullet_span = self.dwg.tspan(list_bullet, x=[self.svg_x+space_before], dy=[0])
                     self.textbox.add(bullet_span)
 
-                    p_item = list_item.find("text:p")
-                    item_h, tspan, after_i, h_lights, d_lines = self.visit_p(p_item)
+                    item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(sublist_item)
                     l_height += item_h + after_i
 
                     if on_first_item:
                         first_span = bullet_span
                         on_first_item = False
+                        first_descent = item_d
                     else:
                         if tspan:
                             item_dy = tspan.__getitem__("dy") + prev_after
@@ -641,15 +683,28 @@ class TextBoxParser():
         self.style_stack.pop()
 
         # TODO: Get after spacing and bubble up instead of "0"
-        return l_height, first_span, 0, highlights, decor_lines
+        return l_height, first_descent, first_span, 0, highlights, decor_lines
 
 
-    def visit_textbox(self):
-        item_tb = self.item.find("draw:text-box")
+    def visit_textbox(self, layer, mode):
+        if mode == "textbox":
+            item_tb = self.item.find("draw:text-box")
+        elif mode == "shape":
+            item_tb = self.item
+
         self.svg_w = units_to_float(self.item["svg:width"])
         self.svg_h = units_to_float(self.item["svg:height"])
-        self.svg_x = units_to_float(self.item["svg:x"])
-        self.svg_y = units_to_float(self.item["svg:y"])
+        if "svg:x" in self.item.attrs:
+            self.svg_x = units_to_float(self.item["svg:x"])
+        else:
+            self.svg_x = 0.0
+        if "svg:y" in self.item.attrs:
+            self.svg_y = units_to_float(self.item["svg:y"])
+        else:
+            self.svg_y = 0.0
+        
+        # TODO: Now need to transform based on draw:transform if no svg:x,y
+
         self.svg_w_px = self.svg_w * DPCM
         self.cur_y = self.svg_y
         self.textbox = self.dwg.text('', insert=(self.svg_x, self.svg_y))
@@ -696,16 +751,18 @@ class TextBoxParser():
         self.decor_lines = []
 
         first_span = None
+        first_descent = 0
         for p_item in item_tb.find_all({"text:p", "text:list"}, recursive=False):
             if p_item.name == "text:p":
-                item_h, tspan, after_i, h_lights, d_lines = self.visit_p(p_item)
+                item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(p_item)
             elif p_item.name == "text:list":
-                item_h, tspan, after_i, h_lights, d_lines = self.visit_list(p_item, 0, None)
+                item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_list(p_item, 0, None)
 
             textbox_h += item_h + after_i
             if on_first_item:
                 first_span = tspan
                 on_first_item = False
+                first_descent = item_d
             else:
                 if tspan:
                     item_dy = tspan.__getitem__("dy") + prev_after
@@ -717,26 +774,30 @@ class TextBoxParser():
             for dl in d_lines:
                 self.decor_lines.append(dl)
 
-        # Center align textbox vertically
+        # Set textbox vertical align
+        if self.v_align == "top":
+            v_adj = 0
+        elif self.v_align == "middle":
+            v_adj = (self.svg_h - textbox_h) / 2
+        else:
+            v_adj = self.svg_h - textbox_h
+        v_adj -= first_descent
+
         # TODO: Get this to work properly - use horizontal lines to check calcs
-        # TODO: Check for styling options re vertical align
+        # Doesn't yet appear to work with textboxes that have before-spacing in first paragraph
         if first_span:
-            # print("FS:" + str(first_span.__getitem__("dy")))
-            # Need to subtract first line height then add on first line (max) font-size
-            #  -- this seems to work for all except textboxes that have a leading before-spacing
-            # So will need to bubble these values through the visits
-            textbox_dy = first_span.__getitem__("dy") + (self.svg_h - textbox_h) / 2
+            textbox_dy = first_span.__getitem__("dy") + v_adj
             first_span.__setitem__("dy", textbox_dy)
 
         for hl in self.highlights:
-            hl["baseline"] += ((self.svg_h - textbox_h) / 2)
-            self.dwg.add(self.dwg.rect(
+            hl["baseline"] += v_adj
+            layer.add(self.dwg.rect(
                 insert=(hl["x"], hl["baseline"] - hl["height"] + hl["descent"]),
                 size=(hl["width"], hl["height"]),
                 fill=hl["color"]))
 
         for dl in self.decor_lines:
-            dl["y"] += ((self.svg_h - textbox_h) / 2)
+            dl["y"] += v_adj
             stroke_w = dl["font-size"]/(DPCM*12)
             if dl["line-width"] == "bold":
                 stroke_w *= 2
@@ -765,7 +826,7 @@ class TextBoxParser():
                         for idx, item in enumerate(d_array):
                             d_array[idx] = item * dl["font-size"] / DPCM
                         s_line.dasharray(d_array)
-                    self.dwg.add(s_line)
-                self.dwg.add(d_line)
+                    layer.add(s_line)
+                layer.add(d_line)
 
-        self.dwg.add(self.textbox)
+        layer.add(self.textbox)

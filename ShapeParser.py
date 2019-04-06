@@ -5,6 +5,7 @@ import re
 import math
 from FillFactory import FillFactory
 from StrokeFactory import StrokeFactory
+from TextBoxParser import TextBoxParser
 from ODPFunctions import units_to_float
 
 class ShapeParser():
@@ -238,8 +239,8 @@ class ShapeParser():
 
 
     @classmethod
-    def render_shape(cls, dwg, pres, shape):
-        # TODO: render text in the custom shape
+    def render_shape(cls, dwg, pres, shape, layer, style_src):
+        # TODO: cope with draw:transform for text boxes
         geom = shape.find("draw:enhanced-geometry")
         if "svg:viewbox" in geom.attrs:
             vb_bounds = [int(x) for x in geom["svg:viewbox"].split()]
@@ -325,8 +326,8 @@ class ShapeParser():
                 print("Unrecognised command: " + section)
 
         # Apply stroke and fill
-        StrokeFactory.stroke(pres, dwg, shape, shape_path, 1)
-        style_tag = pres.content.find("office:automatic-styles")\
+        StrokeFactory.stroke(pres, dwg, shape, shape_path, 1, style_src)
+        style_tag = style_src.find("office:automatic-styles")\
             .find({"style:style"}, {"style:name": shape["draw:style-name"]})
         attrs = style_tag.find("style:graphic-properties").attrs
         FillFactory.fill(dwg, shape_path, pres, attrs, \
@@ -337,5 +338,17 @@ class ShapeParser():
         if "draw:transform" in shape.attrs:
             ShapeParser.transform_shape(shape, shape_path)
 
-        # Finally add custom shape to main drawing
-        dwg.add(shape_path)
+        # Add custom shape to main drawing
+        layer.add(shape_path)
+
+        # Overlay any text
+        vert_align = "middle"
+        if "draw:style-name" in shape.attrs:
+            tb_style_name = shape["draw:style-name"]
+            tb_style = style_src.find("office:automatic-styles")\
+                .find({"style:style"}, {"style:name": tb_style_name})
+            tb_graphics = tb_style.find({"style:graphic-properties"})
+            if "draw:textarea-vertical-align" in tb_graphics.attrs:
+                vert_align = tb_graphics["draw:textarea-vertical-align"]
+        tb_parser = TextBoxParser(dwg, pres, shape, pres.font_mgr, vert_align, style_src)
+        tb_parser.visit_textbox(layer, "shape")
