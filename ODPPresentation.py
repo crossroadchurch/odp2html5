@@ -10,6 +10,7 @@ from FillFactory import FillFactory
 from ShapeParser import ShapeParser
 from StrokeFactory import StrokeFactory
 from TextBoxParser import TextBoxParser
+from AnimationFactory import AnimationFactory
 from ODPFunctions import units_to_float
 
 DPCM = 37.7953
@@ -23,6 +24,8 @@ class ODPPresentation:
         self.styles = BeautifulSoup(pres_archive.read('styles.xml'), "lxml", from_encoding='UTF-8')
         self.content = BeautifulSoup(pres_archive.read('content.xml'), "lxml", from_encoding='UTF-8')
         self.font_mgr = font_manager.FontManager()
+        self.animator = AnimationFactory()
+        self.xml_ids = {}
 
         # Create SVG drawing of correct size
         drawing_size = self.get_document_size()
@@ -51,6 +54,7 @@ class ODPPresentation:
 
 
     def parse_frame(self, item, layer_g, style_src):
+        # TODO: Work out how to store xml:ids for images with and without borders and text areas with and without borders...
         print("parse frame")
         frame_attrs = item.attrs
 
@@ -60,11 +64,11 @@ class ODPPresentation:
             return
 
         if "draw:transform" in frame_attrs:
-            # TODO: Cope with draw:transform instead of svg:x and svg:y
-            return
+            frame_x, frame_y = 0, 0
+        else:
+            frame_x = units_to_float(frame_attrs["svg:x"])
+            frame_y = units_to_float(frame_attrs["svg:y"])
 
-        frame_x = units_to_float(frame_attrs["svg:x"])
-        frame_y = units_to_float(frame_attrs["svg:y"])
         frame_w = units_to_float(frame_attrs["svg:width"])
         frame_h = units_to_float(frame_attrs["svg:height"])
         # TODO: draw:frame might contain something other than an image...
@@ -101,12 +105,16 @@ class ODPPresentation:
                 layer_g.add(clip_img)
                 self.clip_id += 1
             else:
-                layer_g.add(self.dwg.image(self.data_store + image_href,\
+                clip_img = self.dwg.image(self.data_store + image_href,\
                     insert=(frame_x, frame_y), size=(frame_w, frame_h),\
-                    preserveAspectRatio="none"))
+                    preserveAspectRatio="none")
+                layer_g.add(clip_img)
             frame = self.dwg.rect(insert=(frame_x, frame_y), \
                 size=(frame_w, frame_h), fill='none')
             StrokeFactory.stroke(self, self.dwg, item, frame, 1, style_src)
+            if "draw:transform" in frame_attrs:
+                ShapeParser.transform_shape(item, clip_img)
+                ShapeParser.transform_shape(item, frame)
             layer_g.add(frame)
         elif item.find("draw:text-box"):
             tb_rect = self.dwg.rect(insert=(frame_x, frame_y), size=(frame_w, frame_h))
@@ -137,6 +145,14 @@ class ODPPresentation:
         line_y2 = units_to_float(item.attrs["svg:y2"])
         line = self.dwg.line(start=(line_x1, line_y1), end=(line_x2, line_y2))
         StrokeFactory.stroke(self, self.dwg, item, line, 1, style_src)
+        if "xml:id" in item.attrs:
+            self.xml_ids[item["xml:id"]] = {
+                "item": line,
+                "x": min(line_x1, line_x2),
+                "y": min(line_y1, line_y2),
+                "width": abs(line_x2 - line_x1),
+                "height": abs(line_y2 - line_y1)
+            }
         layer_g.add(line)
 
 
@@ -155,6 +171,15 @@ class ODPPresentation:
         path.scale(path_scale)
         # TODO: See how dashed paths and end markers for paths work
         StrokeFactory.stroke(self, self.dwg, item, path, 1/path_scale, style_src)
+        if "xml:id" in item.attrs:
+            # TODO: Configure this to work with draw:transforms
+            self.xml_ids[item["xml:id"]] = {
+                "item": path,
+                "x": units_to_float(item.attrs["svg:x"]),
+                "y": units_to_float(item.attrs["svg:y"]),
+                "width": path_w,
+                "height": units_to_float(item.attrs["svg:width"])
+            }
         layer_g.add(path)
 
 
@@ -172,6 +197,14 @@ class ODPPresentation:
         polyline.scale(polyline_scale)
         # TODO: See how dashed polylines and end markers for polylines work
         StrokeFactory.stroke(self, self.dwg, item, polyline, 1/polyline_scale, style_src)
+        if "xml:id" in item.attrs:
+            self.xml_ids[item["xml:id"]] = {
+                "item": polyline,
+                "x": units_to_float(item.attrs["svg:x"]),
+                "y": units_to_float(item.attrs["svg:y"]),
+                "width": polyline_w,
+                "height": units_to_float(item.attrs["svg:height"])
+            }
         layer_g.add(polyline)
 
 
@@ -199,6 +232,14 @@ class ODPPresentation:
         FillFactory.fill(self.dwg, polygon, self, attrs, \
             polygon_w/polygon_scale, polygon_h/polygon_scale, style_tag)
         StrokeFactory.stroke(self, self.dwg, item, polygon, 1/polygon_scale, style_src)
+        if "xml:id" in item.attrs:
+            self.xml_ids[item["xml:id"]] = {
+                "item": polygon,
+                "x": units_to_float(item.attrs["svg:x"]),
+                "y": units_to_float(item.attrs["svg:y"]),
+                "width": polygon_w,
+                "height": polygon_h
+            }
         layer_g.add(polygon)
 
 
@@ -224,7 +265,26 @@ class ODPPresentation:
                 layer_g.add(sub_group)
                 sub_items = item.find_all(recursive=False)
                 self.parse_item_group(sub_items, sub_group, style_src)
-            print("Parsed!")
+
+
+    def parse_page_animations(self, timing_root):
+        main_seq = timing_root.find("anim:seq")
+        click_anims = main_seq.findChildren({"anim:par"}, recursive=False)
+        for click_anim in click_anims:
+            # print("Click item")
+            timed_anims = click_anim.findChildren({"anim:par"}, recursive=False)
+            for timed_anim in timed_anims:
+                # print("  Timed item")
+                anim_data = timed_anim.find({"anim:par"})
+                # Find animation target - assumption is that all sub animation nodes are applied
+                # to the same target
+                # TODO: Check validity of this assumption
+                anim_subnode = anim_data.findChild()
+                anim_target = anim_subnode["smil:targetelement"]
+                if anim_target in self.xml_ids:
+                    self.animator.add_animation(self, self.xml_ids[anim_target], anim_data)
+
+
 
 
     def generate_page(self, page, layer_g, layer_bg, on_first_page):
@@ -245,7 +305,12 @@ class ODPPresentation:
 
         page_items = page.find_all(recursive=False)
         self.sub_g = 0
+        self.xml_ids = {}
         self.parse_item_group(page_items, layer_g, self.content)
+        # print(self.xml_ids)
+        timing_root = page.find({"anim:par"})
+        if timing_root:
+            self.parse_page_animations(timing_root)
 
 
     def generate_master_page(self, mp_name, layer_m, layer_obj):
@@ -292,7 +357,6 @@ class ODPPresentation:
             else:
                 page_layer = self.dwg.g(id='page_' + str(idx), style="display:none;")
                 self.generate_page(page, page_layer, page_bgs, first_page)
-            
             self.dwg.add(page_layer)
             page_ids.append('page_' + str(idx))
 
@@ -314,7 +378,7 @@ class ODPPresentation:
     <body>
         <script>function showGroup(id){
             console.log(id);
-            $('[id^=page]').css('display', 'none');
+            $('svg > g[id^=page]').css('display', 'none');
             $('#' + id).css('display','block');
             $('#' + id + '_bg').css('display','block');
         }</script>
@@ -328,5 +392,5 @@ class ODPPresentation:
 
 
 if __name__ == "__main__":
-    ODP_PRES = ODPPresentation('./files/pm_2.odp', './store/')
+    ODP_PRES = ODPPresentation('./files/anim_entrance_basic.odp', './store/')
     ODP_PRES.to_html('./test.html')

@@ -292,7 +292,7 @@ class ShapeParser():
                 elif group and group[0] == "?":
                     section_groups[idx] = str(eval("eq_results[" + group[2:] + "]"))
             section = ' '.join(section_groups)
-            print(section)
+            # print(section)
 
             # Process section
             if section[0] in ["Z"]:
@@ -337,6 +337,17 @@ class ShapeParser():
         # Apply transformation to shape if needed
         if "draw:transform" in shape.attrs:
             ShapeParser.transform_shape(shape, shape_path)
+
+        # Store xml:id, if it exists
+        # TODO: Do we need to group the overlaid text with this...?
+        if "xml:id" in shape.attrs:
+            pres.xml_ids[shape["xml:id"]] = {
+                "item": shape_path,
+                "x": base_x,
+                "y": base_y,
+                "width": units_to_float(shape["svg:width"]),
+                "height": units_to_float(shape["svg:height"])
+            }
 
         # Add custom shape to main drawing
         layer.add(shape_path)

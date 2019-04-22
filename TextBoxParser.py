@@ -343,12 +343,15 @@ class TextBoxParser():
         return line_height, line_descent, first_span, highlights, decor_lines
 
 
-    def visit_p(self, item_p):
+    def visit_p(self, item_p, is_in_list):
         # TODO: Underline, overline - final few variations
         p_stack_frame = self.style_stack[len(self.style_stack) - 1].copy() # shallow copy
         if "text:style-name" in item_p.attrs:
             self.populate_stack_frame(p_stack_frame, item_p["text:style-name"])
         self.style_stack.append(p_stack_frame)
+
+        if is_in_list:
+            self.style_stack[-1]["fo:margin-left"] = self.style_stack[-2]["fo:margin-left"]
 
         # Add on before spacing to cur_y
         self.cur_y += p_stack_frame["fo:margin-top"]
@@ -405,8 +408,20 @@ class TextBoxParser():
 
             print("++" + str(item_span.contents) + "++")
             span_text = ''.join(item_span.contents)
-            # Cope with empty or whitespace-only spans
-            if span_text.strip() == "":
+            # Cope with line break span
+            if span_text == "\n":
+                line_h, line_d, tspan, h_lights, d_lines = self.process_line(queued_spans, \
+                    [line_indent, span_stack_frame["fo:margin-right"]], \
+                    span_stack_frame["fo:line-height"])
+                queued_spans.clear()
+                line_size = 0
+                p_height += line_h
+                if on_first_line:
+                    on_first_line = False
+                    first_span = tspan
+                    first_descent = line_d
+            # Cope with empty or whitespace-only spans (tabs and/or spaces)
+            elif span_text.strip() == "":
                 if span_text == "":
                     span_w = 0
                 else:
@@ -421,8 +436,6 @@ class TextBoxParser():
                     "text": span_text,
                     "stack-frame": span_stack_frame.copy()})
                 span_text = "" # Ensure that while loop doesn't run
-
-            # print("#" + span_text + "#")
 
             while span_pos != -1:
                 h_lights, d_lines = [], []
@@ -554,8 +567,6 @@ class TextBoxParser():
     def visit_list(self, item_l, level, parent_style):
         # TODO: Bullet image
         # TODO: Relative indents
-        # TODO: Lists may begin with a text:list-header item, which is formatted as a list item but without
-        # preceding bullet or number
 
         # Load in list styles
         if "text:style-name" in item_l.attrs:
@@ -602,7 +613,7 @@ class TextBoxParser():
             for subheader_item in list_header.find_all({"text:p"}, recursive=False):
                 # TODO: Later add in other children of list-header
                 if subheader_item.name == "text:p":
-                    item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(subheader_item)
+                    item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(subheader_item, True)
                     l_height += item_h + after_i
                     if on_first_item:
                         first_span = tspan
@@ -641,40 +652,44 @@ class TextBoxParser():
                             list_bullet = list_bullet + l_styles[level]["style:num-suffix"]
                     bullet_span = self.dwg.tspan(list_bullet, x=[self.svg_x+space_before], dy=[0])
                     self.textbox.add(bullet_span)
-
-                    item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(sublist_item)
+                    item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(sublist_item, True)
                     l_height += item_h + after_i
 
-                    if on_first_item:
-                        first_span = bullet_span
-                        on_first_item = False
-                        first_descent = item_d
+                    if tspan.text.strip() == "":
+                        # Remove empty bullet points by deleting bullet text
+                        bullet_span.text = ""
                     else:
-                        if tspan:
-                            item_dy = tspan.__getitem__("dy") + prev_after
-                            tspan.__setitem__("dy", item_dy)
-                        prev_after = after_i
 
-                    # Copy attributes to bullet_span from tspan
-                    bullet_span.__setitem__("dy", tspan.__getitem__("dy"))
-                    tspan.__setitem__("dy", 0)
-                    bullet_style = tspan.__getitem__("style")
-                    if bullet_font:
-                        font_start = bullet_style.find("font-family:")
-                        font_end = bullet_style.find(";", font_start + 1)
-                        bullet_style = bullet_style[:font_start+12] + bullet_font + \
-                            bullet_style[font_end:]
-                    size_start = bullet_style.find("font-size:")
-                    size_end = bullet_style.find("pt", size_start + 1)
-                    scaled_size = float(bullet_style[size_start+10:size_end]) * bullet_scale
-                    bullet_style = bullet_style[:size_start+10] + \
-                        str(scaled_size) + bullet_style[size_end:]
-                    if bullet_color:
-                        color_start = bullet_style.find("fill:")
-                        color_end = bullet_style.find(";", color_start + 1)
-                        bullet_style = bullet_style[:color_start+5] + bullet_color + \
-                            bullet_style[color_end:]
-                    bullet_span.__setitem__("style", bullet_style)
+                        if on_first_item:
+                            first_span = bullet_span
+                            on_first_item = False
+                            first_descent = item_d
+                        else:
+                            if tspan:
+                                item_dy = tspan.__getitem__("dy") + prev_after
+                                tspan.__setitem__("dy", item_dy)
+                            prev_after = after_i
+
+                        # Copy attributes to bullet_span from tspan
+                        bullet_span.__setitem__("dy", tspan.__getitem__("dy"))
+                        tspan.__setitem__("dy", 0)
+                        bullet_style = tspan.__getitem__("style")
+                        if bullet_font:
+                            font_start = bullet_style.find("font-family:")
+                            font_end = bullet_style.find(";", font_start + 1)
+                            bullet_style = bullet_style[:font_start+12] + bullet_font + \
+                                bullet_style[font_end:]
+                        size_start = bullet_style.find("font-size:")
+                        size_end = bullet_style.find("pt", size_start + 1)
+                        scaled_size = float(bullet_style[size_start+10:size_end]) * bullet_scale
+                        bullet_style = bullet_style[:size_start+10] + \
+                            str(scaled_size) + bullet_style[size_end:]
+                        if bullet_color:
+                            color_start = bullet_style.find("fill:")
+                            color_end = bullet_style.find(";", color_start + 1)
+                            bullet_style = bullet_style[:color_start+5] + bullet_color + \
+                                bullet_style[color_end:]
+                        bullet_span.__setitem__("style", bullet_style)
                 # Process highlights and decor_lines
                 for hl in h_lights:
                     highlights.append(hl)
@@ -754,7 +769,7 @@ class TextBoxParser():
         first_descent = 0
         for p_item in item_tb.find_all({"text:p", "text:list"}, recursive=False):
             if p_item.name == "text:p":
-                item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(p_item)
+                item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_p(p_item, False)
             elif p_item.name == "text:list":
                 item_h, item_d, tspan, after_i, h_lights, d_lines = self.visit_list(p_item, 0, None)
 

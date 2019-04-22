@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="300" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50">
+        <animate attributeName="x" begin="indefinite" dur="1s" from="-125" to="25" id="fly_in_top_left" fill="freeze" />
+        <animate attributeName="y" begin="fly_in_top_left.begin" dur="1s" from="-100" to="50" fill="freeze" />
+    </rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" clip-path="url(#box_entrance_out)"></rect>
+</svg>

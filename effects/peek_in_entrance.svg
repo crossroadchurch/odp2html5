@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="600" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <clipPath id="peek_in_top_clip" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="-1.01" width="1" height="1">
+                <animate attributeName="y" begin="indefinite" dur="1s" from="-1.01" to="0" id="peek_in_top" fill="freeze" />
+            </rect>
+        </clipPath>
+        <clipPath id="peek_in_left_clip" clipPathUnits="objectBoundingBox">
+            <rect x="-1.01" y="0" width="1" height="1">
+                <animate attributeName="x" begin="indefinite" dur="1s" from="-1.01" to="0" id="peek_in_left" fill="freeze" />
+            </rect>
+        </clipPath>
+        <clipPath id="peek_in_bottom_clip" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="1.01" width="1" height="1">
+                <animate attributeName="y" begin="indefinite" dur="1s" from="1.01" to="0" id="peek_in_bottom" fill="freeze" />
+            </rect>
+        </clipPath>
+        <clipPath id="peek_in_right_clip" clipPathUnits="objectBoundingBox">
+            <rect x="1.01" y="0" width="1" height="1">
+                <animate attributeName="x" begin="indefinite" dur="1s" from="1.01" to="0" id="peek_in_right" fill="freeze" />
+            </rect>
+        </clipPath>
+    </defs>
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50" clip-path="url(#peek_in_top_clip)"></rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" clip-path="url(#peek_in_left_clip)"></rect>
+    <rect fill="blue" height="200" id="rect1" stroke="black" width="250" x="25" y="350" clip-path="url(#peek_in_bottom_clip)"></rect>
+    <rect fill="yellow" height="200" id="rect2" stroke="black" width="250" x="325" y="350" clip-path="url(#peek_in_right_clip)"></rect>
+</svg>

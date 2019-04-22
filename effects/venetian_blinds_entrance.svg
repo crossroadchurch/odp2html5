@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="300" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <clipPath id="vertical_venetian" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="0" width="1" height="0">
+                <animate attributeName="height" begin="indefinite" dur="1s" from="0" to="0.17" id="venetian_vert_in" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.17" width="1" height="0">
+                <animate attributeName="height" begin="venetian_vert_in.begin" dur="1s" from="0" to="0.17" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.34" width="1" height="0">
+                <animate attributeName="height" begin="venetian_vert_in.begin" dur="1s" from="0" to="0.16" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.5" width="1" height="0">
+                <animate attributeName="height" begin="venetian_vert_in.begin" dur="1s" from="0" to="0.17" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.67" width="1" height="0">
+                <animate attributeName="height" begin="venetian_vert_in.begin" dur="1s" from="0" to="0.17" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.84" width="1" height="0">
+                <animate attributeName="height" begin="venetian_vert_in.begin" dur="1s" from="0" to="0.16" fill="freeze" />
+            </rect>
+        </clipPath>
+        <clipPath id="horizontal_venetian" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="0" width="0" height="1">
+                <animate attributeName="width" begin="indefinite" dur="1s" from="0" to="0.175" id="venetian_horiz_in" fill="freeze" />
+            </rect>
+            <rect x="0.17" y="0" width="0" height="1">
+                <animate attributeName="width" begin="venetian_horiz_in.begin" dur="1s" from="0" to="0.175" fill="freeze" />
+            </rect>
+            <rect x="0.34" y="0" width="0" height="1">
+                <animate attributeName="width" begin="venetian_horiz_in.begin" dur="1s" from="0" to="0.165" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0" width="0" height="1">
+                <animate attributeName="width" begin="venetian_horiz_in.begin" dur="1s" from="0" to="0.175" fill="freeze" />
+            </rect>
+            <rect x="0.67" y="0" width="0" height="1">
+                <animate attributeName="width" begin="venetian_horiz_in.begin" dur="1s" from="0" to="0.175" fill="freeze" />
+            </rect>
+            <rect x="0.84" y="0" width="0" height="1">
+                <animate attributeName="width" begin="venetian_horiz_in.begin" dur="1s" from="0" to="0.16" fill="freeze" />
+            </rect>
+        </clipPath>
+    </defs>
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50" clip-path="url(#vertical_venetian)"></rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" clip-path="url(#horizontal_venetian)"></rect>
+</svg>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="600" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <mask id="oval_vertical_in_mask" maskContentUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+            <rect x="0" y="0" width="1" height="1" style="fill:white;" />
+            <ellipse cx="0.5" cy="0.5" rx="0.71" ry="1.42" style="fill:black;">
+                <animate attributeName="rx" begin="indefinite" dur="1s" from="0.71" to="0" id="oval_in" fill="freeze" />
+                <animate attributeName="ry" begin="oval_in.begin" dur="1s" from="1.42" to="0" fill="freeze" />
+            </ellipse>
+        </mask>
+
+        <mask id="oval_vertical_out_mask" maskContentUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+            <ellipse cx="0.5" cy="0.5" rx="0" ry="0" style="fill:white;">
+                <animate attributeName="rx" begin="indefinite" dur="1s" from="0" to="0.71" id="oval_out" fill="freeze" />
+                <animate attributeName="ry" begin="oval_out.begin" dur="1s" from="0" to="1.42" fill="freeze" />
+            </ellipse>
+        </mask>
+    </defs>
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50" style="mask:url(#oval_vertical_in_mask)"></rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" style="mask:url(#oval_vertical_out_mask)"></rect>
+</svg>

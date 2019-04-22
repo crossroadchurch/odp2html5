@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="600" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <mask id="plus_in_mask" maskContentUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+            <rect x="-0.51" y="-0.51" width="0.5" height="0.5" style="fill:white;">
+                <animate attributeName="x" begin="indefinite" dur="1s" from="-0.51" to="0" id="plus_in" fill="freeze" />
+                <animate attributeName="y" begin="plus_in.begin" dur="1s" from="-0.51" to="0" fill="freeze" />
+            </rect>
+            <rect x="-0.51" y="1.01" width="0.5" height="0.5" style="fill:white;">
+                <animate attributeName="x" begin="plus_in.begin" dur="1s" from="-0.51" to="0" fill="freeze" />
+                <animate attributeName="y" begin="plus_in.begin" dur="1s" from="1.01" to="0.5" fill="freeze" />
+            </rect>
+            <rect x="1.01" y="-0.51" width="0.5" height="0.5" style="fill:white;">
+                <animate attributeName="x" begin="plus_in.begin" dur="1s" from="1.01" to="0.5" fill="freeze" />
+                <animate attributeName="y" begin="plus_in.begin" dur="1s" from="-0.51" to="0" fill="freeze" />
+            </rect>
+            <rect x="1.01" y="1.01" width="0.5" height="0.5" style="fill:white;">
+                <animate attributeName="x" begin="plus_in.begin" dur="1s" from="1.01" to="0.5" fill="freeze" />
+                <animate attributeName="y" begin="plus_in.begin" dur="1s" from="1.01" to="0.5" fill="freeze" />
+            </rect>
+        </mask>
+
+        <mask id="plus_out_mask" maskContentUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+            <rect x="0" y="0" width="1" height="1" style="fill:white;" />
+            <rect x="0" y="0" width="0.5" height="0.5" style="fill:black;">
+                <animate attributeName="x" begin="indefinite" dur="1s" from="0" to="-0.51" id="plus_out" fill="freeze" />
+                <animate attributeName="y" begin="plus_out.begin" dur="1s" from="0" to="-0.51" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.5" width="0.5" height="0.5" style="fill:black;">
+                <animate attributeName="x" begin="plus_out.begin" dur="1s" from="0" to="-0.51" fill="freeze" />
+                <animate attributeName="y" begin="plus_out.begin" dur="1s" from="0.5" to="1.01" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0" width="0.5" height="0.5" style="fill:black;">
+                <animate attributeName="x" begin="plus_out.begin" dur="1s" from="0.5" to="1.01" fill="freeze" />
+                <animate attributeName="y" begin="plus_out.begin" dur="1s" from="0" to="-0.51" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.5" width="0.5" height="0.5" style="fill:black;">
+                <animate attributeName="x" begin="plus_out.begin" dur="1s" from="0.5" to="1.01" fill="freeze" />
+                <animate attributeName="y" begin="plus_out.begin" dur="1s" from="0.5" to="1.01" fill="freeze" />
+            </rect>
+        </mask>
+    </defs>
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50" style="mask:url(#plus_in_mask)"></rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" style="mask:url(#plus_out_mask)"></rect>
+</svg>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="300" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <clipPath id="box_exit_in" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="0" width="1" height="0.5">
+                <animate attributeName="y" begin="indefinite" dur="1s" from="0" to="-0.51" id="box_in" fill="freeze" />
+            </rect>
+            <rect x="0" y="0" width="0.5" height="1">
+                <animate attributeName="x" begin="box_in.begin" dur="1s" from="0" to="-0.51" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.5" width="1" height="0.5">
+                <animate attributeName="y" begin="box_in.begin" dur="1s" from="0.5" to="1.01" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0" width="0.5" height="1">
+                <animate attributeName="x" begin="box_in.begin" dur="1s" from="0.5" to="1.01" fill="freeze" />
+            </rect>
+        </clipPath>
+        <clipPath id="box_exit_out" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="0" width="1" height="1">
+                <animate attributeName="x" begin="indefinite" dur="1s" from="0" to="0.5" id="box_out" fill="freeze" />
+                <animate attributeName="y" begin="box_out.begin" dur="1s" from="0" to="0.5" fill="freeze" />
+                <animate attributeName="width" begin="box_out.begin" dur="1s" from="1" to="0" fill="freeze" />
+                <animate attributeName="height" begin="box_out.begin" dur="1s" from="1" to="0" fill="freeze" />
+            </rect>
+        </clipPath>
+    </defs>
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50" clip-path="url(#box_exit_in)"></rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" clip-path="url(#box_exit_out)"></rect>
+</svg>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="600" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <mask id="circle_in_mask" maskContentUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+            <rect x="0" y="0" width="1" height="1" style="fill:white;" />
+            <circle cx="0.5" cy="0.5" r="0" style="fill:black;">
+                <animate attributeName="r" begin="indefinite" dur="1s" from="0" to="0.71" id="circle_in" fill="freeze" />
+            </circle>
+        </mask>
+
+        <mask id="circle_out_mask" maskContentUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+            <circle cx="0.5" cy="0.5" r="0.71" style="fill:white;">
+                <animate attributeName="r" begin="indefinite" dur="1s" from="0.71" to="0" id="circle_out" fill="freeze" />
+            </circle>
+        </mask>
+    </defs>
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50" style="mask:url(#circle_in_mask)"></rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" style="mask:url(#circle_out_mask)"></rect>
+</svg>

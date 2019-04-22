@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="300" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <clipPath id="chequerboard_across_clip" clipPathUnits="objectBoundingBox">
+            <rect x="-0.1" y="0" width="0" height="0.1">
+                <animate attributeName="width" begin="indefinite" dur="1s" from="0" to="0.2" id="chequerboard_across" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="-0.01" y="0.1" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.1" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.1" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.1" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.1" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+
+            <rect x="-0.1" y="0.2" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.2" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.2" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.2" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.2" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.2" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="-0.01" y="0.3" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.3" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.3" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.3" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.3" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+
+            <rect x="-0.1" y="0.4" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.4" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.4" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.4" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.4" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.4" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="-0.01" y="0.5" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.5" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.5" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.5" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.5" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+
+            <rect x="-0.1" y="0.6" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.6" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.6" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.6" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.6" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.6" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="-0.01" y="0.7" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.7" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.7" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.7" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.7" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+
+            <rect x="-0.1" y="0.8" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.8" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.8" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.8" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.8" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.8" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="-0.01" y="0.9" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.9" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.9" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.9" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.9" width="0" height="0.1">
+                <animate attributeName="width" begin="chequerboard_across.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+        </clipPath>
+
+        <clipPath id="chequerboard_downward_clip" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="-0.01" width="0.1" height="0">
+                <animate attributeName="height" begin="indefinite" dur="1s" from="0" to="0.21" id="chequerboard_downward" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.2" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.4" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.6" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0" y="0.8" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="-0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.3" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.5" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.7" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.1" y="0.9" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+
+            <rect x="0.2" y="-0.01" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.2" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.4" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.6" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.2" y="0.8" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="-0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.3" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.5" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.7" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.3" y="0.9" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+
+            <rect x="0.4" y="-0.01" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.2" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.4" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.6" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.4" y="0.8" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="-0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.3" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.5" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.7" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.5" y="0.9" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+
+            <rect x="0.6" y="-0.01" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.2" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.4" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.6" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.6" y="0.8" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="-0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.3" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.5" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.7" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.7" y="0.9" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+
+            <rect x="0.8" y="-0.01" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.2" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.4" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.6" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.8" y="0.8" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.21" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="-0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.1" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.3" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.5" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.7" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+            <rect x="0.9" y="0.9" width="0.1" height="0">
+                <animate attributeName="height" begin="chequerboard_downward.begin" dur="1s" from="0" to="0.2" fill="freeze" />
+            </rect>
+        </clipPath>
+    </defs>
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50" clip-path="url(#chequerboard_across_clip)"></rect>
+    <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="325" y="50" clip-path="url(#chequerboard_downward_clip)"></rect>
+</svg>
