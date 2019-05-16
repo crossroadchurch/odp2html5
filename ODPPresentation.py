@@ -21,8 +21,10 @@ class ODPPresentation:
         self.url = url
         self.data_store = data_store
         pres_archive = zipfile.ZipFile(url, 'r')
-        self.styles = BeautifulSoup(pres_archive.read('styles.xml'), "lxml", from_encoding='UTF-8')
-        self.content = BeautifulSoup(pres_archive.read('content.xml'), "lxml", from_encoding='UTF-8')
+        self.styles = BeautifulSoup(pres_archive.read('styles.xml'), \
+            "lxml", from_encoding='UTF-8')
+        self.content = BeautifulSoup(pres_archive.read('content.xml'), \
+            "lxml", from_encoding='UTF-8')
         self.font_mgr = font_manager.FontManager()
         self.animator = AnimationFactory()
         self.xml_ids = {}
@@ -54,7 +56,8 @@ class ODPPresentation:
 
 
     def parse_frame(self, item, layer_g, style_src):
-        # TODO: Work out how to store xml:ids for images with and without borders and text areas with and without borders...
+        # TODO: Work out how to store xml:ids for images with and without borders and text areas
+        # with and without borders...
         print("parse frame")
         frame_attrs = item.attrs
 
@@ -300,7 +303,8 @@ class ODPPresentation:
                 display_style = "display:none;"
             bg_rect = self.dwg.rect(insert=(0, 0), size=(self.d_width, self.d_height),\
                 style=display_style, id=layer_g.__getitem__("id")+"_bg")
-            FillFactory.fill(self.dwg, bg_rect, self, attrs, self.d_width, self.d_height, page_style_tag)
+            FillFactory.fill(self.dwg, bg_rect, self, attrs, self.d_width, self.d_height, \
+                page_style_tag)
             layer_bg.add(bg_rect)
 
         page_items = page.find_all(recursive=False)
@@ -370,9 +374,11 @@ class ODPPresentation:
 
     def to_html(self, output):
         out_file = open(output, 'w', encoding='ascii', errors='xmlcharrefreplace')
-        out_file.write('''<html>
+        out_file.write('''<!DOCTYPE html>
+<html>
     <head>
         <title>SVG test</title>
+        <meta charset="utf-8" />
         <script type="text/javascript" src="jquery-1.12.4.min.js"></script>
     </head>
     <body>
@@ -392,5 +398,5 @@ class ODPPresentation:
 
 
 if __name__ == "__main__":
-    ODP_PRES = ODPPresentation('./files/anim_entrance_basic.odp', './store/')
+    ODP_PRES = ODPPresentation('./files/anim_exit_others.odp', './store/')
     ODP_PRES.to_html('./test.html')
