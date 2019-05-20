@@ -199,15 +199,18 @@ class AnimationFactory():
         self.anim_count = 0
 
 
-    def add_animation(self, pres, item_data, anim_data):
+    def add_animation(self, pres, item_data, anim_data, begin_at):
         anim_preset = anim_data["presentation:preset-id"]
         anim_subtype = None
+        anim_id = None
         if "presentation:preset-sub-type" in anim_data.attrs:
             anim_subtype = anim_data["presentation:preset-sub-type"]
         if anim_preset in self.animation_presets:
-            self.animation_presets.get(anim_preset)(anim_subtype, pres, item_data, anim_data)
+            anim_id = self.animation_presets.get(anim_preset)(\
+                anim_subtype, pres, item_data, anim_data, begin_at)
         else:
             print("Unsupported animation preset: " + anim_preset)
+        return anim_id
 
 
     def generate_anim_id(self):
@@ -216,14 +219,15 @@ class AnimationFactory():
         return anim_id
 
 
-    def entrance_appear(self, subtype, pres, item_data, anim_data):
+    def entrance_appear(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id
         ))
+        return anim_id
 
 
-    def entrance_fly_in(self, subtype, pres, item_data, anim_data):
+    def entrance_fly_in(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:animate"})["smil:dur"]
         start_x, start_y = 0, 0
@@ -237,7 +241,7 @@ class AnimationFactory():
             start_y = pres.d_height - item_data["y"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id
         ))
         # Then fly in item
         item_data["item"].add(pres.dwg.animateTransform(
@@ -245,14 +249,15 @@ class AnimationFactory():
             from_=str(start_x)+" "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze",
             calcMode="spline", keySplines="0.5 0 0.5 1"))
+        return anim_id
 
 
-    def entrance_venetian_blinds(self, subtype, pres, item_data, anim_data):
+    def entrance_venetian_blinds(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate blinds
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -275,15 +280,19 @@ class AnimationFactory():
                     from_="0", to=str(x_next-x_cur+0.01)))
                 mask.add(blind)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_box(self, subtype, pres, item_data, anim_data):
+    def entrance_box(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate box
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -306,15 +315,19 @@ class AnimationFactory():
             ))
         mask.add(box)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_checkerboard(self, subtype, pres, item_data, anim_data):
+    def entrance_checkerboard(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate checkerboard
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -340,15 +353,19 @@ class AnimationFactory():
                         from_="0", to=str(j[1])))
                     mask.add(rect)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_circle(self, subtype, pres, item_data, anim_data):
+    def entrance_circle(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate circle
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -366,15 +383,19 @@ class AnimationFactory():
                 from_="0", to="0.71"))
         mask.add(circle)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_oval(self, subtype, pres, item_data, anim_data):
+    def entrance_oval(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate oval
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -398,10 +419,14 @@ class AnimationFactory():
                 from_="0", to="1.42"))
         mask.add(oval)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_fly_in_slow(self, subtype, pres, item_data, anim_data):
+    def entrance_fly_in_slow(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:animate"})["smil:dur"]
         start_x, start_y = 0, 0
@@ -415,21 +440,22 @@ class AnimationFactory():
             start_y = pres.d_height - item_data["y"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id
         ))
         # Then fly in item
         item_data["item"].add(pres.dwg.animateTransform(
             "translate", "transform",
             from_=str(start_x)+" "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_diamond(self, subtype, pres, item_data, anim_data):
+    def entrance_diamond(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate diamond
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -452,15 +478,19 @@ class AnimationFactory():
             ))
         mask.add(diamond)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_dissolve_in(self, subtype, pres, item_data, anim_data):
+    def entrance_dissolve_in(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate grid
         # Divided into square grid (document space, not mask space), longest side in 16 pieces
         if item_data["width"] > item_data["height"]:
@@ -489,26 +519,31 @@ class AnimationFactory():
             step_offset += 1
             del squares[idx]
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_flash_once(self, subtype, pres, item_data, anim_data):
+    def entrance_flash_once(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:set"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate flash once
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".begin+"+anim_dur))
+        return anim_id
 
 
-    def entrance_peek_in(self, subtype, pres, item_data, anim_data):
+    def entrance_peek_in(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate box
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -539,19 +574,23 @@ class AnimationFactory():
             start_x = item_data["width"]
         mask.add(peek)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         item_data["item"].add(pres.dwg.animateTransform(
             "translate", "transform",
             from_=str(start_x)+" "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_plus(self, subtype, pres, item_data, anim_data):
+    def entrance_plus(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate plus
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -582,15 +621,19 @@ class AnimationFactory():
             ))
         mask.add(plus)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_random_bars(self, subtype, pres, item_data, anim_data):
+    def entrance_random_bars(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate random bars
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -616,15 +659,19 @@ class AnimationFactory():
             del bar_vals[idx]
 
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_split(self, subtype, pres, item_data, anim_data):
+    def entrance_split(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate split
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -669,15 +716,19 @@ class AnimationFactory():
         mask.add(rect1)
         mask.add(rect2)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_diagonal_squares(self, subtype, pres, item_data, anim_data):
+    def entrance_diagonal_squares(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate diagonal squares
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -719,16 +770,20 @@ class AnimationFactory():
                 dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
         mask.add(diag)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_wedge(self, subtype, pres, item_data, anim_data):
+    def entrance_wedge(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:transitionfilter"})["smil:dur"])
         anim_dur = str(anim_dur / 6) + "s"
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate wedge
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -794,17 +849,21 @@ class AnimationFactory():
         mask.add(wedge_r)
         mask.add(wedge_l)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_wheel(self, subtype, pres, item_data, anim_data):
+    def entrance_wheel(self, subtype, pres, item_data, anim_data, begin_at):
         step_durs = {"1": 0.08, "2": 0.16, "3": 0.25, "4": 0.33, "8": 0.5}
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:transitionfilter"})["smil:dur"])
         step_dur = str(anim_dur * step_durs[subtype]) + "s"
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate wheel
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -1030,15 +1089,19 @@ class AnimationFactory():
                     -4.58,-1.6 -3.39,-3.39 0.5,0.5 -3.39,-3.39 -1.6,-4.58 0.5,-5"))
         mask.add(wheel)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_wipe(self, subtype, pres, item_data, anim_data):
+    def entrance_wipe(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then animate box
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -1064,10 +1127,14 @@ class AnimationFactory():
                 from_="1,0 1,0 1,1 1,1", to="0,0 1,0 1,1 0,1"))
         mask.add(wipe)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_random(self, subtype, pres, item_data, anim_data):
+    def entrance_random(self, subtype, pres, item_data, anim_data, begin_at):
         # Get a random entrance effect
         effect_choice = random.randint(0, len(self.entrances)-1)
         effect_name = self.entrances[effect_choice][0]
@@ -1094,27 +1161,29 @@ class AnimationFactory():
         soup.insert(1, new_anim_data)
 
         # Call appropriate entrance function
-        self.animation_presets.get(effect_name)(effect_subtype, pres, item_data, soup)
+        return self.animation_presets.get(effect_name)(\
+            effect_subtype, pres, item_data, soup, begin_at)
 
 
-    def entrance_fade_in(self, subtype, pres, item_data, anim_data):
+    def entrance_fade_in(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do fade
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
             from_="0", to="1"))
+        return anim_id
 
 
-    def entrance_fade_in_and_zoom(self, subtype, pres, item_data, anim_data):
+    def entrance_fade_in_and_zoom(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do fade and zoom
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
@@ -1130,14 +1199,15 @@ class AnimationFactory():
             from_="0 0", to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_expand(self, subtype, pres, item_data, anim_data):
+    def entrance_expand(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do expand
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
@@ -1152,50 +1222,50 @@ class AnimationFactory():
             from_="0.7 1", to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_thread(self, subtype, pres, item_data, anim_data):
+    def entrance_thread(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:animate"})["smil:dur"])
         segment_dur = str(anim_dur/2)+"s"
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do thread
-        # TODO: Get this to work!
-        start_x = 0
-        start_y = 0
-        start_w = item_data["width"] + 0.3*pres.d_width
-        start_h = item_data["height"]/20
+        start_x = -0.3 * pres.d_width
         mid_x = 0
-        mid_y = 0
-        #0.3*(item_data["x"] + item_data["width"]/2)
-        item_data["item"].add(pres.dwg.animateTransform(
-            "translate", "transform",
-            from_=str(start_x)+" "+str(start_y), to=str(mid_x)+" "+str(mid_y),
-            dur=segment_dur, begin=anim_id+".begin", fill="freeze"))
-        item_data["item"].add(pres.dwg.animateTransform(
-            "translate", "transform",
-            from_=str(mid_x)+" "+str(mid_y), to="0 0",
-            dur=segment_dur, begin=anim_id+".begin+"+segment_dur, fill="freeze"))
-        item_data["item"].add(pres.dwg.animateTransform(
-            "scale", "transform",
-            from_=str(start_w)+" "+str(start_h), to=str(start_w)+" "+str(start_h),
-            additive="sum",
-            dur=segment_dur, begin=anim_id+".begin", fill="freeze"))
+        start_w = (item_data["width"] + 0.3*pres.d_width) / item_data["width"]
+        mid_w = start_w
+        start_h = 0.05
+        mid_h = start_h
+        start_y = -0.475 * item_data["height"]
+        mid_y = start_y
+        # item_data["item"].add(pres.dwg.animateTransform(
+        #     "translate", "transform",
+        #     values=str(-item_data["x"]-item_data["width"]/2)+" "+str(-item_data["y"]-item_data["height"]/2)+";"+str(-item_data["x"]-item_data["width"]/2)+" "+str(-item_data["y"]-item_data["height"]/2)+";"+str(-item_data["x"]-item_data["width"]/2)+" "+str(-item_data["y"]-item_data["height"]/2),
+        #     additive="sum",
+        #     dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
         item_data["item"].add(pres.dwg.animateTransform(
             "scale", "transform",
-            from_=str(start_w)+" "+str(start_h), to="1 1",
+            values="1 0.05;1 0.05;1 1",
+            # values=str(start_w)+" "+str(start_h)+";"+str(mid_w)+" "+str(mid_h)+";1 1",
+            # additive="sum",
+            dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            values=str(0)+" "+str((item_data["y"]+(item_data["height"]/2))/0.05),#+";"+str(0)+" "+str(item_data["y"]/0.05)+";0 0",
             additive="sum",
-            dur=segment_dur, begin=anim_id+".begin+"+segment_dur, fill="freeze"))
+            dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_stretchy(self, subtype, pres, item_data, anim_data):
+    def entrance_stretchy(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:animate"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         if subtype == "across":
             start_x = item_data["x"] + item_data["width"]/2
             start_y = 0
@@ -1245,14 +1315,15 @@ class AnimationFactory():
             from_=str(start_w)+" "+str(start_h), to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_ease_in(self, subtype, pres, item_data, anim_data):
+    def entrance_ease_in(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do ease in
         start_x = -0.2*pres.d_width
         item_data["item"].add(pres.dwg.animateTransform(
@@ -1267,17 +1338,21 @@ class AnimationFactory():
             from_="1,0 1,0 1,1 1,1", to="0,0 1,0 1,1 0,1"))
         mask.add(wipe)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
+        return anim_id
 
 
-    def entrance_rise_up(self, subtype, pres, item_data, anim_data):
+    def entrance_rise_up(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:transitionfilter"})["smil:dur"])
         first_dur = str(anim_dur * 0.9) + "s"
         second_dur = str(anim_dur * 0.1) + "s"
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do rise
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
@@ -1294,14 +1369,15 @@ class AnimationFactory():
             from_="0 "+str(mid_y), to="0 0",
             dur=second_dur, begin=anim_id+"_1.end", fill="freeze",
             calcMode="spline", keySplines="0 0.2 0.8 1"))
+        return anim_id
 
 
-    def entrance_ascend(self, subtype, pres, item_data, anim_data):
+    def entrance_ascend(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do ascend
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
@@ -1311,14 +1387,15 @@ class AnimationFactory():
             "translate", "transform",
             from_="0 "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_descend(self, subtype, pres, item_data, anim_data):
+    def entrance_descend(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do descend
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
@@ -1328,14 +1405,15 @@ class AnimationFactory():
             "translate", "transform",
             from_="0 "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_spin_in(self, subtype, pres, item_data, anim_data):
+    def entrance_spin_in(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do spin in
         # TODO: Get this to work!!!
         item_data["item"].add(pres.dwg.animate(
@@ -1360,14 +1438,15 @@ class AnimationFactory():
             from_=str(start_x)+" "+str(start_y), to="0 0",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def entrance_compress(self, subtype, pres, item_data, anim_data):
+    def entrance_compress(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then do compress
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
@@ -1382,16 +1461,18 @@ class AnimationFactory():
             from_="1.3 1", to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        return anim_id
 
 
-    def exit_disappear(self, subtype, pres, item_data, anim_data):
+    def exit_disappear(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id
+            attributeName="visibility", to="hidden", begin=begin_at, id=anim_id
         ))
+        return anim_id
 
 
-    def exit_fly_out(self, subtype, pres, item_data, anim_data):
+    def exit_fly_out(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:animate"})["smil:dur"]
         end_x, end_y = 0, 0
@@ -1407,15 +1488,16 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.animateTransform(
             "translate", "transform",
             from_="0 0", to=str(end_x)+" "+str(end_y),
-            dur=anim_dur, begin="indefinite", fill="freeze", id=anim_id,
+            dur=anim_dur, begin=begin_at, fill="freeze", id=anim_id,
             calcMode="spline", keySplines="0.5 0 0.5 1"))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"
         ))
+        return anim_id
 
 
-    def exit_venetian_blinds(self, subtype, pres, item_data, anim_data):
+    def exit_venetian_blinds(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate blinds
@@ -1429,7 +1511,7 @@ class AnimationFactory():
                     insert=(0, y_cur), size=(1, y_next-y_cur+0.01), style="fill:white;")
                 if i == 0:
                     blind.add(pres.dwg.animate(
-                        attributeName="height", begin="indefinite", id=anim_id,
+                        attributeName="height", begin=begin_at, id=anim_id,
                         dur=anim_dur, fill="freeze",
                         from_=str(y_next-y_cur+0.01), to="0"))
                 else:
@@ -1445,7 +1527,7 @@ class AnimationFactory():
                     insert=(x_cur, 0), size=(x_next-x_cur+0.01, 1), style="fill:white;")
                 if i == 0:
                     blind.add(pres.dwg.animate(
-                        attributeName="width", begin="indefinite", id=anim_id,
+                        attributeName="width", begin=begin_at, id=anim_id,
                         dur=anim_dur, fill="freeze",
                         from_=str(x_next-x_cur+0.01), to="0"))
                 else:
@@ -1454,13 +1536,17 @@ class AnimationFactory():
                         from_=str(x_next-x_cur+0.01), to="0"))
                 mask.add(blind)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_box(self, subtype, pres, item_data, anim_data):
+    def exit_box(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate box
@@ -1472,26 +1558,30 @@ class AnimationFactory():
             box = pres.dwg.polygon(style="fill:black;",\
                 points=[(0.5, 0.5), (0.5, 0.5), (0.5, 0.5), (0.5, 0.5)])
             box.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0.5,0.5 0.5,0.5 0.5,0.5 0.5,0.5",
                 to="-0.01,-0.01 1.01,-0.01 1.01,1.01 -0.01,1.01"))
         else: # subtype == "out"
             box = pres.dwg.polygon(style="fill:white;",\
                 points=[(-0.01, -0.01), (1.01, -0.01), (1.01, 1.01), (-0.01, 1.01)])
             box.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="-0.01,-0.01 1.01,-0.01 1.01,1.01 -0.01,1.01",
                 to="0.5,0.5 0.5,0.5 0.5,0.5 0.5,0.5"
             ))
         mask.add(box)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_checkerboard(self, subtype, pres, item_data, anim_data):
+    def exit_checkerboard(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate checkerboard
@@ -1509,7 +1599,7 @@ class AnimationFactory():
                         insert=(j[0], i/10), size=(j[1], 0.11), style="fill:white;")
                     if first_segment:
                         rect.add(pres.dwg.animate(
-                            attributeName="width", begin="indefinite", id=anim_id,
+                            attributeName="width", begin=begin_at, id=anim_id,
                             dur=anim_dur, fill="freeze", from_=str(j[1]), to="0"))
                         first_segment = False
                     else:
@@ -1525,7 +1615,7 @@ class AnimationFactory():
                         insert=(i/10, j[0]), size=(0.11, j[1]), style="fill:white;")
                     if first_segment:
                         rect.add(pres.dwg.animate(
-                            attributeName="height", begin="indefinite", id=anim_id,
+                            attributeName="height", begin=begin_at, id=anim_id,
                             dur=anim_dur, fill="freeze", from_=str(j[1]), to="0"))
                         first_segment = False
                     else:
@@ -1534,13 +1624,17 @@ class AnimationFactory():
                             dur=anim_dur, fill="freeze", from_=str(j[1]), to="0"))
                     mask.add(rect)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_circle(self, subtype, pres, item_data, anim_data):
+    def exit_circle(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate circle
@@ -1551,22 +1645,26 @@ class AnimationFactory():
             mask.add(rect)
             circle = pres.dwg.circle(center=(0.5, 0.5), r=0, style="fill:black;")
             circle.add(pres.dwg.animate(
-                attributeName="r", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="r", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 to="0.71", from_="0"))
         else: # subtype == "out"
             circle = pres.dwg.circle(center=(0.5, 0.5), r=0.71, style="fill:white;")
             circle.add(pres.dwg.animate(
-                attributeName="r", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="r", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 to="0", from_="0.71"))
         mask.add(circle)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_crawl_out(self, subtype, pres, item_data, anim_data):
+    def exit_crawl_out(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:animate"})["smil:dur"]
         end_x, end_y = 0, 0
@@ -1582,14 +1680,15 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.animateTransform(
             "translate", "transform",
             from_="0 0", to=str(end_x)+" "+str(end_y),
-            dur=anim_dur, begin="indefinite", fill="freeze", id=anim_id))
+            dur=anim_dur, begin=begin_at, fill="freeze", id=anim_id))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"
         ))
+        return anim_id
 
 
-    def exit_diamond(self, subtype, pres, item_data, anim_data):
+    def exit_diamond(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate diamond
@@ -1601,25 +1700,29 @@ class AnimationFactory():
             diamond = pres.dwg.polygon(style="fill:black;",\
                 points=[(0.5, 0.5), (0.5, 0.5), (0.5, 0.5), (0.5, 0.5)])
             diamond.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0.5,0.5 0.5,0.5 0.5,0.5 0.5,0.5",
                 to="0.5,-0.5 1.5,0.5 0.5,1.5 -0.5,0.5"))
         else: # subtype == "out"
             diamond = pres.dwg.polygon(style="fill:white;",\
                 points=[(0.5, -0.5), (1.5, 0.5), (0.5, 1.5), (-0.5, 0.5)])
             diamond.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0.5,-0.5 1.5,0.5 0.5,1.5 -0.5,0.5",
                 to="0.5,0.5 0.5,0.5 0.5,0.5 0.5,0.5"))
         mask.add(diamond)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_dissolve(self, subtype, pres, item_data, anim_data):
+    def exit_dissolve(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate grid
@@ -1647,7 +1750,7 @@ class AnimationFactory():
                 size=(1.1/grid_w_count, 1.1/grid_h_count))
             if first_square:
                 rect.add(pres.dwg.set(attributeName="visibility", to="hidden", fill="freeze",\
-                    begin="indefinite", id=anim_id))
+                    begin=begin_at, id=anim_id))
                 first_square = False
             else:
                 rect.add(pres.dwg.set(attributeName="visibility", to="hidden", fill="freeze",\
@@ -1656,26 +1759,31 @@ class AnimationFactory():
             step_offset += 1
             del squares[idx]
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="visible", begin=anim_id+".begin+"+anim_dur))
+        return anim_id
 
 
-    def exit_flash_once(self, subtype, pres, item_data, anim_data):
+    def exit_flash_once(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:animate"})["smil:dur"])
         # Animate flash once
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id))
+            attributeName="visibility", to="hidden", begin=begin_at, id=anim_id))
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="visible", begin=anim_id+".begin+"+str(anim_dur/2)+"s"))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".begin+"+str(anim_dur)+"s"))
+        return anim_id
 
 
-    def exit_peek_out(self, subtype, pres, item_data, anim_data):
+    def exit_peek_out(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate peek
@@ -1708,17 +1816,21 @@ class AnimationFactory():
             end_x = item_data["width"]
         mask.add(peek)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         item_data["item"].add(pres.dwg.animateTransform(
             "translate", "transform",
             from_="0 0", to=str(end_x)+" "+str(end_y),
-            dur=anim_dur, begin="indefinite", id=anim_id, fill="freeze"))
+            dur=anim_dur, begin=begin_at, id=anim_id, fill="freeze"))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
-        
+        return anim_id
 
-    def exit_plus(self, subtype, pres, item_data, anim_data):
+
+    def exit_plus(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate plus
@@ -1731,7 +1843,7 @@ class AnimationFactory():
                 points=[(0, 0.5), (0.5, 0.5), (0.5, 0), (0.5, 0), (0.5, 0.5), (1, 0.5),\
                     (1, 0.5), (0.5, 0.5), (0.5, 1), (0.5, 1), (0.5, 0.5), (0, 0.5)])
             plus.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0,0.5 0.5,0.5 0.5,0 0.5,0 0.5,0.5 1,0.5\
                     1,0.5 0.5,0.5 0.5,1 0.5,1 0.5,0.5 0,0.5",
                 to="-0.01,-0.01 -0.01,-0.01 -0.01,-0.01 1.01,-0.01 1.01,-0.01 1.01,-0.01\
@@ -1742,20 +1854,24 @@ class AnimationFactory():
                     (1.01, -0.01), (1.01, -0.01), (1.01, 1.01), (1.01, 1.01),\
                     (1.01, 1.01), (-0.01, 1.01), (-0.01, 1.01), (-0.01, 1.01)])
             plus.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="-0.01,-0.01 -0.01,-0.01 -0.01,-0.01 1.01,-0.01 1.01,-0.01 1.01,-0.01\
                     1.01,1.01 1.01,1.01 1.01,1.01 -0.01,1.01 -0.01,1.01 -0.01,1.01",
                 to="0,0.5 0.5,0.5 0.5,0 0.5,0 0.5,0.5 1,0.5\
                     1,0.5 0.5,0.5 0.5,1 0.5,1 0.5,0.5 0,0.5"))
         mask.add(plus)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end", id=anim_id))
+        return anim_id
 
 
-    def exit_random_bars(self, subtype, pres, item_data, anim_data):
+    def exit_random_bars(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate random bars
@@ -1774,7 +1890,7 @@ class AnimationFactory():
                     size=(1, 1.15/max_bars), style="fill:white;stroke:none;")
                 if first_bar:
                     cur_bar.add(pres.dwg.set(attributeName="x", to="1.01", fill="freeze",\
-                        begin="indefinite", id=anim_id))
+                        begin=begin_at, id=anim_id))
                     first_bar = False
                 else:
                     cur_bar.add(pres.dwg.set(attributeName="x", to="1.01", fill="freeze",\
@@ -1784,7 +1900,7 @@ class AnimationFactory():
                     size=(1.15/max_bars, 1), style="fill:white;stroke:none;")
                 if first_bar:
                     cur_bar.add(pres.dwg.set(attributeName="y", to="1.01", fill="freeze",\
-                        begin="indefinite", id=anim_id))
+                        begin=begin_at, id=anim_id))
                     first_bar = False
                 else:
                     cur_bar.add(pres.dwg.set(attributeName="y", to="1.01", fill="freeze",\
@@ -1793,13 +1909,17 @@ class AnimationFactory():
             step_offset += 1
             del bar_vals[idx]
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".begin+"+anim_dur))
+        return anim_id
 
 
-    def exit_diagonal_squares(self, subtype, pres, item_data, anim_data):
+    def exit_diagonal_squares(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Then animate diagonal squares
@@ -1814,7 +1934,7 @@ class AnimationFactory():
                     (-0.1, 0.9), (-0.1, 1), (0, 1), (1, 1), (1, 0)])
             diag.add(pres.dwg.animateTransform(
                 "translate", "transform", from_="0 0", to="2 0",
-                dur=anim_dur, begin="indefinite", id=anim_id, fill="freeze"))
+                dur=anim_dur, begin=begin_at, id=anim_id, fill="freeze"))
         elif subtype == "left-to-top":
             diag = pres.dwg.polygon(style="fill:white;",\
                 points=[(1, 0), (1, 0.1), (1.1, 0.1), (1.1, 0.2), (1.2, 0.2), (1.2, 0.3),\
@@ -1823,7 +1943,7 @@ class AnimationFactory():
                     (1.9, 0.9), (1.9, 1), (2, 1), (0, 1), (0, 0)])
             diag.add(pres.dwg.animateTransform(
                 "translate", "transform", from_="0 0", to="-2 0",
-                dur=anim_dur, begin="indefinite", id=anim_id, fill="freeze"))
+                dur=anim_dur, begin=begin_at, id=anim_id, fill="freeze"))
         elif subtype == "right-to-top":
             diag = pres.dwg.polygon(style="fill:white;",\
                 points=[(-1, 1), (-1, 0.9), (-0.9, 0.9), (-0.9, 0.8), (-0.8, 0.8), (-0.8, 0.7),\
@@ -1832,7 +1952,7 @@ class AnimationFactory():
                     (-0.1, 0.1), (-0.1, 0), (0, 0), (1, 0), (1, 1)])
             diag.add(pres.dwg.animateTransform(
                 "translate", "transform", from_="0 0", to="2 0",
-                dur=anim_dur, begin="indefinite", id=anim_id, fill="freeze"))
+                dur=anim_dur, begin=begin_at, id=anim_id, fill="freeze"))
         else: # subtype == "right-to-bottom"
             diag = pres.dwg.polygon(style="fill:white;",\
                 points=[(1, 1), (1, 0.9), (1.1, 0.9), (1.1, 0.8), (1.2, 0.8), (1.2, 0.7),\
@@ -1841,16 +1961,20 @@ class AnimationFactory():
                     (1.9, 0.1), (1.9, 0), (2, 0), (0, 0), (0, 1)])
             diag.add(pres.dwg.animateTransform(
                 "translate", "transform", from_="0 0", to="-2 0",
-                dur=anim_dur, begin="indefinite", id=anim_id, fill="freeze"))
+                dur=anim_dur, begin=begin_at, id=anim_id, fill="freeze"))
         mask.add(diag)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_split(self, subtype, pres, item_data, anim_data):
+    def exit_split(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Then animate split
@@ -1859,7 +1983,7 @@ class AnimationFactory():
         if subtype == "horizontal-in":
             rect1 = pres.dwg.rect(insert=(0, 0), size=(1, 0.5), style="fill:white;")
             rect1.add(pres.dwg.animate(
-                attributeName="y", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="y", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0", to="-0.51"))
             rect2 = pres.dwg.rect(insert=(0, 0.5), size=(1, 0.5), style="fill:white;")
             rect2.add(pres.dwg.animate(
@@ -1868,7 +1992,7 @@ class AnimationFactory():
         elif subtype == "vertical-in":
             rect1 = pres.dwg.rect(insert=(0, 0), size=(0.5, 1), style="fill:white;")
             rect1.add(pres.dwg.animate(
-                attributeName="x", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="x", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0", to="-0.51"))
             rect2 = pres.dwg.rect(insert=(0.5, 0), size=(0.5, 1), style="fill:white;")
             rect2.add(pres.dwg.animate(
@@ -1878,7 +2002,7 @@ class AnimationFactory():
             mask.add(pres.dwg.rect(insert=(0, 0), size=(1, 1), style="fill:white;"))
             rect1 = pres.dwg.rect(insert=(0, -0.51), size=(1, 0.5), style="fill:black;")
             rect1.add(pres.dwg.animate(
-                attributeName="y", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="y", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="-0.51", to="0"))
             rect2 = pres.dwg.rect(insert=(0, 1.01), size=(1, 0.5), style="fill:black;")
             rect2.add(pres.dwg.animate(
@@ -1888,7 +2012,7 @@ class AnimationFactory():
             mask.add(pres.dwg.rect(insert=(0, 0), size=(1, 1), style="fill:white;"))
             rect1 = pres.dwg.rect(insert=(-0.51, 0), size=(0.5, 1), style="fill:black;")
             rect1.add(pres.dwg.animate(
-                attributeName="x", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="x", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="-0.51", to="0"))
             rect2 = pres.dwg.rect(insert=(1.01, 0), size=(0.5, 1), style="fill:black;")
             rect2.add(pres.dwg.animate(
@@ -1897,13 +2021,17 @@ class AnimationFactory():
         mask.add(rect1)
         mask.add(rect2)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
-        
+        return anim_id
 
-    def exit_wedge(self, subtype, pres, item_data, anim_data):
+
+    def exit_wedge(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:transitionfilter"})["smil:dur"])
         anim_dur = str(anim_dur / 6) + "s"
@@ -1913,7 +2041,7 @@ class AnimationFactory():
         wedge_r = pres.dwg.polygon(style="fill:white;stroke:none;", points=[(0.5, 0.5), (0.5, -5),\
             (3.25, -4.26), (5.26, -2.25), (6, 0.5), (5.26, 3.25), (3.25, 5.26), (0.5, 6)])
         wedge_r.add(pres.dwg.animate(attributeName="points",\
-            begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",\
+            begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",\
             from_="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 5.26,3.25 3.25,5.26 0.5,6",\
             to="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 5.26,3.25 3.25,5.26 3.25,5.26"))
         wedge_r.add(pres.dwg.animate(attributeName="points",\
@@ -1972,13 +2100,17 @@ class AnimationFactory():
         mask.add(wedge_r)
         mask.add(wedge_l)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+"_l6.end"))
+        return anim_id
 
 
-    def exit_wheel(self, subtype, pres, item_data, anim_data):
+    def exit_wheel(self, subtype, pres, item_data, anim_data, begin_at):
         step_durs = {"1": 0.08, "2": 0.16, "3": 0.25, "4": 0.33, "8": 0.5}
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:transitionfilter"})["smil:dur"])
@@ -1992,7 +2124,7 @@ class AnimationFactory():
                     (5.26, 3.25), (3.25, 5.26), (0.5, 6), (-2.25, 5.26), (-4.26, 3.25),\
                     (-5, 0.5), (-4.26, -2.25), (-2.25, -4.26), (0.5, -5)])
             wheel.add(pres.dwg.animate(attributeName="points",\
-                begin="indefinite", id=anim_id, dur=step_dur, fill="freeze",\
+                begin=begin_at, id=anim_id, dur=step_dur, fill="freeze",\
                 from_="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 5.26,3.25 3.25,5.26 0.5,6\
                     -2.25,5.26 -4.26,3.25 -5,0.5 -4.26,-2.25 -2.25,-4.26 0.5,-5",\
                 to="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 5.26,3.25 3.25,5.26 0.5,6 -2.25,5.26\
@@ -2069,7 +2201,7 @@ class AnimationFactory():
                     (5.26, 3.25), (3.25, 5.26), (0.5, 6), (0.5, 0.5), (0.5, 6), (-2.25, 5.26),\
                     (-4.26, 3.25), (-5, 0.5), (-4.26, -2.25), (-2.25, -4.26), (0.5, -5)])
             wheel.add(pres.dwg.animate(attributeName="points",\
-                begin="indefinite", id=anim_id, dur=step_dur, fill="freeze",\
+                begin=begin_at, id=anim_id, dur=step_dur, fill="freeze",\
                 from_="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 5.26,3.25 3.25,5.26 0.5,6 0.5,0.5\
                     0.5,6 -2.25,5.26 -4.26,3.25 -5,0.5 -4.26,-2.25 -2.25,-4.26 0.5,-5",\
                 to="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 5.26,3.25 3.25,5.26 3.25,5.26\
@@ -2119,7 +2251,7 @@ class AnimationFactory():
                     (-4.26, 3.25), (0.5, 0.5), (-4.26, 3.25), (-5, 0.5), (-4.26, -2.25),\
                     (-2.25, -4.26), (0.5, -5)])
             wheel.add(pres.dwg.animate(attributeName="points",\
-                begin="indefinite", id=anim_id, dur=step_dur, fill="freeze",\
+                begin=begin_at, id=anim_id, dur=step_dur, fill="freeze",\
                 from_="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 5.26,3.25 0.5,0.5 5.26,3.25\
                     3.25,5.26 0.5,6 -2.25,5.26 -4.26,3.25 0.5,0.5 -4.26,3.25 -5,0.5 -4.26,-2.25\
                     -2.25,-4.26 0.5,-5",\
@@ -2157,7 +2289,7 @@ class AnimationFactory():
                     (-2.25, 5.26), (-4.26, 3.25), (-5, 0.5), (0.5, 0.5), (-5, 0.5), (-4.26, -2.25),\
                     (-2.25, -4.26), (0.5, -5)])
             wheel.add(pres.dwg.animate(attributeName="points",\
-                begin="indefinite", id=anim_id, dur=step_dur, fill="freeze",\
+                begin=begin_at, id=anim_id, dur=step_dur, fill="freeze",\
                 from_="0.5,0.5 0.5,-5 3.25,-4.26 5.26,-2.25 6,0.5 0.5,0.5 6,0.5 5.26,3.25 3.25,5.26\
                     0.5,6 0.5,0.5 0.5,6 -2.25,5.26 -4.26,3.25 -5,0.5 0.5,0.5 -5,0.5 -4.26,-2.25\
                     -2.25,-4.26 0.5,-5",\
@@ -2188,7 +2320,7 @@ class AnimationFactory():
                     (-5, 0.5), (0.5, 0.5), (-5, 0.5), (-4.58, -1.6), (-3.39, -3.39), (0.5, 0.5),\
                     (-3.39, -3.39), (-1.6, -4.58), (0.5, -5)])
             wheel.add(pres.dwg.animate(attributeName="points",\
-                begin="indefinite", id=anim_id, dur=step_dur, fill="freeze",\
+                begin=begin_at, id=anim_id, dur=step_dur, fill="freeze",\
                 from_="0.5,0.5 0.5,-5 2.6,-4.58 4.39,-3.39 0.5,0.5 4.39,-3.39 5.58,-1.6 6,0.5\
                     0.5,0.5 6,0.5 5.58,2.6 4.39,4.39 0.5,0.5 4.39,4.39 2.6,5.58 0.5,6 0.5,0.5\
                     0.5,6 -1.6,5.58 -3.39,4.39 0.5,0.5 -3.39,4.39 -4.58,2.6 -5,0.5 0.5,0.5 -5,0.5\
@@ -2209,13 +2341,17 @@ class AnimationFactory():
                     0.5,0.5 -3.39,-3.39 -3.39,-3.39 -3.39,-3.39"))
         mask.add(wheel)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+"_e.end"))
+        return anim_id
 
 
-    def exit_wipe(self, subtype, pres, item_data, anim_data):
+    def exit_wipe(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Animate wipe
@@ -2224,32 +2360,36 @@ class AnimationFactory():
         if subtype == "from-bottom":
             wipe = pres.dwg.polygon(style="fill:white;", points=[(0, 0), (1, 0), (1, 1), (0, 1)])
             wipe.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0,0 1,0 1,1 0,1", to="0,0 1,0 1,0 0,0"))
         elif subtype == "from-right":
             wipe = pres.dwg.polygon(style="fill:white;", points=[(0, 0), (1, 0), (1, 1), (0, 1)])
             wipe.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0,0 1,0 1,1 0,1", to="0,0 0,0 0,1 0,1"))
         elif subtype == "from-top":
             wipe = pres.dwg.polygon(style="fill:white;", points=[(0, 0), (1, 0), (1, 1), (0, 1)])
             wipe.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0,0 1,0 1,1 0,1", to="0,1 1,1 1,1 0,1"))
         else: # subtype == "from-left"
             wipe = pres.dwg.polygon(style="fill:white;", points=[(0, 0), (1, 0), (1, 1), (0, 1)])
             wipe.add(pres.dwg.animate(
-                attributeName="points", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+                attributeName="points", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
                 from_="0,0 1,0 1,1 0,1", to="1,0 1,0 1,1 1,1"))
         mask.add(wipe)
         pres.dwg.defs.add(mask)
-        item_data["item"].__setitem__("style", "mask:url(#" + anim_id+"_mask)")
+        # Set mask at start of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="mask", to="url(#" + anim_id+"_mask)",
+            begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_random(self, subtype, pres, item_data, anim_data):
+    def exit_random(self, subtype, pres, item_data, anim_data, begin_at):
         # Get a random exit effect
         effect_choice = random.randint(0, len(self.exits)-1)
         effect_name = self.exits[effect_choice][0]
@@ -2276,27 +2416,29 @@ class AnimationFactory():
         soup.insert(1, new_anim_data)
 
         # Call appropriate exit function
-        self.animation_presets.get(effect_name)(effect_subtype, pres, item_data, soup)
+        return self.animation_presets.get(effect_name)(\
+            effect_subtype, pres, item_data, soup, begin_at)
 
 
-    def exit_fade_out(self, subtype, pres, item_data, anim_data):
+    def exit_fade_out(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Fade out
         item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+            attributeName="opacity", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_fade_out_and_zoom(self, subtype, pres, item_data, anim_data):
+    def exit_fade_out_and_zoom(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Do fade and zoom
         item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+            attributeName="opacity", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         end_x = item_data["x"] + item_data["width"]/2
         end_y = item_data["y"] + item_data["height"]/2
@@ -2312,14 +2454,15 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_contract(self, subtype, pres, item_data, anim_data):
+    def exit_contract(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Do contract
         item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+            attributeName="opacity", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         end_x = 0.3*(item_data["x"] + item_data["width"]/2)
         item_data["item"].add(pres.dwg.animateTransform(
@@ -2334,9 +2477,10 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_ease_out(self, subtype, pres, item_data, anim_data):
+    def exit_ease_out(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Do ease out
@@ -2344,23 +2488,24 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.animateTransform(
             "translate", "transform",
             from_="0 0", to=str(end_x)+" 0",
-            dur=anim_dur, begin="indefinite", id=anim_id, fill="freeze"))
+            dur=anim_dur, begin=begin_at, id=anim_id, fill="freeze"))
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end", id=anim_id))
+        return anim_id
 
 
-    def exit_sink_down(self, subtype, pres, item_data, anim_data):
+    def exit_sink_down(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = units_to_float(anim_data.find({"anim:transitionfilter"})["smil:dur"])
         first_dur = str(anim_dur * 0.1) + "s"
         second_dur = str(anim_dur * 0.9) + "s"
         # Do sink down
         item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+            attributeName="opacity", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         end_y = pres.d_height
         mid_y = -0.03*pres.d_height
@@ -2377,14 +2522,15 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_descend(self, subtype, pres, item_data, anim_data):
+    def exit_descend(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Do descend
         item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+            attributeName="opacity", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         end_y = 0.1*pres.d_height
         item_data["item"].add(pres.dwg.animateTransform(
@@ -2394,14 +2540,15 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def exit_ascend(self, subtype, pres, item_data, anim_data):
+    def exit_ascend(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Do ascend
         item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+            attributeName="opacity", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         end_y = -0.1*pres.d_height
         item_data["item"].add(pres.dwg.animateTransform(
@@ -2411,15 +2558,16 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
     # TODO: 1.3 should relate to d_width not item_width...
-    def exit_stretchy(self, subtype, pres, item_data, anim_data):
+    def exit_stretchy(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
         # Do stretch
         item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze",
+            attributeName="opacity", begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze",
             from_="1", to="0"))
         end_x = -0.3*(item_data["x"] + item_data["width"]/2)
         item_data["item"].add(pres.dwg.animateTransform(
@@ -2434,9 +2582,10 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        return anim_id
 
 
-    def motionpath(self, subtype, pres, item_data, anim_data):
+    def motionpath(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:animatemotion"})["smil:dur"]
         m_path = anim_data.find({"anim:animatemotion"})["svg:path"]
@@ -2471,4 +2620,5 @@ class AnimationFactory():
                 scaled_path += section[0] + ' '.join(m_path_elts)
         item_data["item"].add(pres.dwg.animateMotion(
             path=scaled_path,
-            begin="indefinite", id=anim_id, dur=anim_dur, fill="freeze"))
+            begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze"))
+        return anim_id

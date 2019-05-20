@@ -348,6 +348,7 @@ class ShapeParser():
                 "width": units_to_float(shape["svg:width"]),
                 "height": units_to_float(shape["svg:height"])
             }
+            shape_path.__setitem__("id", shape["xml:id"])
 
         # Add custom shape to main drawing
         layer.add(shape_path)

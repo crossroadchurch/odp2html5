@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="600" version="1.1" width="600" 
+    xmlns="http://www.w3.org/2000/svg" 
+    xmlns:ev="http://www.w3.org/2001/xml-events" 
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- 
+    x: x-0.3*pres_width, x, x at 0, 0.5, 1 
+    height: height/20, height/20, height at 0, 0.5, 1
+    width: width+0.3*pres_width, width+0.3*pres_width, width at 0, 0.5, 1
+    -->
+    <rect fill="green" height="200" id="rect1" stroke="black" width="250" x="25" y="50">
+        <!-- x_start = x_svg - 0.3*pres_width
+             x_mid = x_svg-->
+        <animate attributeName="x" begin="indefinite" dur="2s" values="-155;25;25" id="thread" fill="freeze" />
+        <animate attributeName="width" begin="thread.begin" dur="2s" values="430;430;250" fill="freeze" />
+        <animate attributeName="height" begin="thread.begin" dur="2s" values="10;10;200" fill="freeze" />
+        <!-- y_start = (height-height/20)/2 + y_svg = (19/40)*height+y_svg = 0.475*height+y_svg -->
+        <animate attributeName="y" begin="thread.begin" dur="2s" values="145;145;50" fill="freeze" />
+    </rect>
+    <!-- <rect fill="red" height="200" id="rect2" stroke="black" width="250" x="25" y="50" transform="translate(0 0)"> -->
+        <!-- <animateTransform attributeName="transform" type="scale" begin="thread.begin" id="thread3" dur="2s" -->
+            <!-- values="1.72 0.05;1.72 0.05;1 1" additive="sum" /> -->
+    <!-- </rect> -->
+    <rect fill="blue" height="200" id="rect2" stroke="black" width="250" x="25" y="50" transform="translate(0 0)">
+        <animateTransform attributeName="transform" type="scale" begin="thread.begin" dur="2s"
+            values="1.72 0.05;1.72 0.05;1 1" fill="freeze" />
+        <animateTransform attributeName="transform" type="translate" begin="thread.begin" dur="2s"
+            values="0 2900;0 2900;0 0" additive="sum" fill="freeze" />
+    </rect>
+
+</svg>

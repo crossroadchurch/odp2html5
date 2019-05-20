@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0103 # Snake-case naming convention
 
+import json
 import zipfile
 import svgwrite
 from bs4 import BeautifulSoup
@@ -156,6 +157,7 @@ class ODPPresentation:
                 "width": abs(line_x2 - line_x1),
                 "height": abs(line_y2 - line_y1)
             }
+            line.__setitem__("id", item["xml:id"])
         layer_g.add(line)
 
 
@@ -183,6 +185,7 @@ class ODPPresentation:
                 "width": path_w,
                 "height": units_to_float(item.attrs["svg:width"])
             }
+            path.__setitem__("id", item["xml:id"])
         layer_g.add(path)
 
 
@@ -208,6 +211,7 @@ class ODPPresentation:
                 "width": polyline_w,
                 "height": units_to_float(item.attrs["svg:height"])
             }
+            polyline.__setitem__("id", item["xml:id"])
         layer_g.add(polyline)
 
 
@@ -243,6 +247,7 @@ class ODPPresentation:
                 "width": polygon_w,
                 "height": polygon_h
             }
+            polygon.__setitem__("id", item["xml:id"])
         layer_g.add(polygon)
 
 
@@ -270,27 +275,45 @@ class ODPPresentation:
                 self.parse_item_group(sub_items, sub_group, style_src)
 
 
-    def parse_page_animations(self, timing_root):
+    def parse_page_animations(self, timing_root, json_data, page_json_data):
         main_seq = timing_root.find("anim:seq")
         click_anims = main_seq.findChildren({"anim:par"}, recursive=False)
+        # Keep track of initially hidden and visible elements that have associated animations
+        init_visible, init_hidden = [], []
         for click_anim in click_anims:
-            # print("Click item")
             timed_anims = click_anim.findChildren({"anim:par"}, recursive=False)
+            first_timed_anim = None
+            begin_at = "indefinite" # First node is initiated with a click
+            anim_json_data = {}
             for timed_anim in timed_anims:
-                # print("  Timed item")
-                anim_data = timed_anim.find({"anim:par"})
-                # Find animation target - assumption is that all sub animation nodes are applied
-                # to the same target
-                # TODO: Check validity of this assumption
-                anim_subnode = anim_data.findChild()
-                anim_target = anim_subnode["smil:targetelement"]
-                if anim_target in self.xml_ids:
-                    self.animator.add_animation(self, self.xml_ids[anim_target], anim_data)
+                parallel_anims = timed_anim.findChildren({"anim:par"}, recursive=False)
+                begin_delay = units_to_float(timed_anim["smil:begin"])
+                for anim_data in parallel_anims:
+                    # Find animation target
+                    anim_subnode = anim_data.findChild()
+                    anim_target = anim_subnode["smil:targetelement"]
+                    anim_preset = anim_data["presentation:preset-id"]
+                    anim_delay = begin_delay + units_to_float(anim_data["smil:begin"])
+                    if anim_target in self.xml_ids:
+                        if first_timed_anim:
+                            begin_at = first_timed_anim + ".begin+" + str(anim_delay) + "s"
+                        anim_id = self.animator.add_animation(\
+                            self, self.xml_ids[anim_target], anim_data, begin_at)
+                        if anim_id:
+                            if not first_timed_anim:
+                                first_timed_anim = anim_id
+                                anim_json_data["id"] = anim_id
+                                
+                            if anim_preset.find("ooo-entrance") == -1\
+                                and anim_target not in init_hidden:
+                                init_visible.append(anim_target)
+                            elif anim_target not in init_visible and anim_target not in init_hidden:
+                                init_hidden.append(anim_target)
+            page_json_data["animations"].append(anim_json_data)
+        page_json_data["init_hidden"] = init_hidden
 
 
-
-
-    def generate_page(self, page, layer_g, layer_bg, on_first_page):
+    def generate_page(self, page, layer_g, layer_bg, on_first_page, json_data):
         # Generate background, if not using master background
         page_style = page.get("draw:style-name")
         page_style_tag = self.content.find("office:automatic-styles")\
@@ -311,10 +334,16 @@ class ODPPresentation:
         self.sub_g = 0
         self.xml_ids = {}
         self.parse_item_group(page_items, layer_g, self.content)
-        # print(self.xml_ids)
+
+        page_json_data = {}
+        page_json_data["page_id"] = layer_g.__getitem__('id')
+        page_json_data["init_hidden"] = []
+        page_json_data["animations"] = []
         timing_root = page.find({"anim:par"})
         if timing_root:
-            self.parse_page_animations(timing_root)
+            self.parse_page_animations(timing_root, json_data, page_json_data)
+        # Store page JSON data
+        json_data["pages"].append(page_json_data)
 
 
     def generate_master_page(self, mp_name, layer_m, layer_obj):
@@ -336,7 +365,12 @@ class ODPPresentation:
         self.parse_item_group(m_page_items, layer_obj, self.styles)
 
 
-    def to_svg(self):
+    def parse(self, html_file, json_file):
+
+        json_data = {}
+        json_data["html_file"] = html_file
+        json_data["pages"] = []
+
         # Create master page background
         bg_layer = self.dwg.g(id='master_bg')
         page_bgs = self.dwg.g(id='ind_page_bgs')
@@ -356,11 +390,11 @@ class ODPPresentation:
         for idx, page in enumerate(pages):
             if first_page:
                 page_layer = self.dwg.g(id='page_' + str(idx), style="display:block;")
-                self.generate_page(page, page_layer, page_bgs, first_page)
+                self.generate_page(page, page_layer, page_bgs, first_page, json_data)
                 first_page = False
             else:
                 page_layer = self.dwg.g(id='page_' + str(idx), style="display:none;")
-                self.generate_page(page, page_layer, page_bgs, first_page)
+                self.generate_page(page, page_layer, page_bgs, first_page, json_data)
             self.dwg.add(page_layer)
             page_ids.append('page_' + str(idx))
 
@@ -369,34 +403,32 @@ class ODPPresentation:
             html_output += "<button onclick=showGroup(\"" + str(p_id) + "\")>" + p_id + "</button>"
         html_output += "</div>"
         html_output += self.dwg.tostring()
-        return html_output
+
+        # Output HTML file and associated JSON transition data file
+        self.to_html(html_file, html_output)
+        with open(json_file, 'w') as json_out:
+            json.dump(json_data, json_out, indent=2)
 
 
-    def to_html(self, output):
-        out_file = open(output, 'w', encoding='ascii', errors='xmlcharrefreplace')
+    def to_html(self, html_file, data):
+        out_file = open(html_file, 'w', encoding='ascii', errors='xmlcharrefreplace')
         out_file.write('''<!DOCTYPE html>
 <html>
     <head>
         <title>SVG test</title>
         <meta charset="utf-8" />
         <script type="text/javascript" src="jquery-1.12.4.min.js"></script>
+        <script type="text/javascript" src="odp_animate.js"></script>
     </head>
     <body>
-        <script>function showGroup(id){
-            console.log(id);
-            $('svg > g[id^=page]').css('display', 'none');
-            $('#' + id).css('display','block');
-            $('#' + id + '_bg').css('display','block');
-        }</script>
-        ''')
-        out_file.write(self.to_svg())
+''')
+        out_file.write(data)
         out_file.write('''
     </body>
-</html>
-        ''')
+</html>''')
         out_file.close()
 
 
 if __name__ == "__main__":
-    ODP_PRES = ODPPresentation('./files/anim_exit_others.odp', './store/')
-    ODP_PRES.to_html('./test.html')
+    ODP_PRES = ODPPresentation('./files/anim_timing.odp', './store/')
+    ODP_PRES.parse('./test.html', './test.json')
