@@ -4,46 +4,132 @@
     {
       "page_id": "page_0",
       "init_hidden": [
-        "id1",
-        "id2",
-        "id3",
-        "id4",
-        "id5",
-        "id6",
-        "id7",
-        "id8",
-        "id9",
-        "id10",
-        "id11",
-        "id12",
-        "id13",
-        "id14",
-        "id15",
-        "id16",
-        "id17",
-        "id18",
-        "id19",
-        "id20",
-        "id21",
-        "id22"
+        "obj_id1"
       ],
       "animations": [
         {
-          "id": "a_0"
+          "id": "a_0",
+          "anim_order": [
+            "a_0"
+          ]
         },
         {
-          "id": "a_1"
-        },
-        {
-          "id": "a_2"
-        },
-        {
-          "id": "a_4"
-        },
-        {
-          "id": "a_6"
+          "id": "a_1",
+          "anim_order": [
+            "a_1"
+          ]
         }
+      ],
+      "init_visible": [
+        "obj_id2"
       ]
+    },
+    {
+      "page_id": "page_1",
+      "init_hidden": [
+        "obj_id3",
+        "obj_id4"
+      ],
+      "animations": [
+        {
+          "id": "a_2",
+          "anim_order": [
+            "a_2"
+          ]
+        },
+        {
+          "id": "a_3",
+          "anim_order": [
+            "a_3"
+          ]
+        },
+        {
+          "id": "a_4",
+          "anim_order": [
+            "a_4"
+          ]
+        }
+      ],
+      "init_visible": [
+        "obj_id5"
+      ]
+    },
+    {
+      "page_id": "page_2",
+      "init_hidden": [
+        "obj_id6",
+        "obj_id7",
+        "obj_id8",
+        "obj_id9",
+        "obj_id10",
+        "obj_id11",
+        "obj_id12",
+        "obj_id13",
+        "obj_id14",
+        "obj_id15",
+        "obj_id16",
+        "obj_id17",
+        "obj_id18",
+        "obj_id19",
+        "obj_id20",
+        "obj_id21",
+        "obj_id22",
+        "obj_id23",
+        "obj_id24",
+        "obj_id25",
+        "obj_id26",
+        "obj_id27"
+      ],
+      "animations": [
+        {
+          "id": "a_5",
+          "anim_order": [
+            "a_5"
+          ]
+        },
+        {
+          "id": "a_6",
+          "anim_order": [
+            "a_6"
+          ]
+        },
+        {
+          "id": "a_7",
+          "anim_order": [
+            "a_7",
+            "a_8"
+          ]
+        },
+        {
+          "id": "a_9",
+          "anim_order": [
+            "a_9",
+            "a_10"
+          ]
+        },
+        {
+          "id": "a_11",
+          "anim_order": [
+            "a_11",
+            "a_13",
+            "a_14",
+            "a_12",
+            "a_16",
+            "a_17",
+            "a_15",
+            "a_19",
+            "a_20",
+            "a_18",
+            "a_22",
+            "a_23",
+            "a_21",
+            "a_25",
+            "a_26",
+            "a_24"
+          ]
+        }
+      ],
+      "init_visible": []
     }
   ]
 }

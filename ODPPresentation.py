@@ -150,14 +150,14 @@ class ODPPresentation:
         line = self.dwg.line(start=(line_x1, line_y1), end=(line_x2, line_y2))
         StrokeFactory.stroke(self, self.dwg, item, line, 1, style_src)
         if "xml:id" in item.attrs:
-            self.xml_ids[item["xml:id"]] = {
+            self.xml_ids["obj_"+item["xml:id"]] = {
                 "item": line,
                 "x": min(line_x1, line_x2),
                 "y": min(line_y1, line_y2),
                 "width": abs(line_x2 - line_x1),
                 "height": abs(line_y2 - line_y1)
             }
-            line.__setitem__("id", item["xml:id"])
+            line.__setitem__("id", "obj_"+item["xml:id"])
         layer_g.add(line)
 
 
@@ -178,14 +178,14 @@ class ODPPresentation:
         StrokeFactory.stroke(self, self.dwg, item, path, 1/path_scale, style_src)
         if "xml:id" in item.attrs:
             # TODO: Configure this to work with draw:transforms
-            self.xml_ids[item["xml:id"]] = {
+            self.xml_ids["obj_"+item["xml:id"]] = {
                 "item": path,
                 "x": units_to_float(item.attrs["svg:x"]),
                 "y": units_to_float(item.attrs["svg:y"]),
                 "width": path_w,
                 "height": units_to_float(item.attrs["svg:width"])
             }
-            path.__setitem__("id", item["xml:id"])
+            path.__setitem__("id", "obj_"+item["xml:id"])
         layer_g.add(path)
 
 
@@ -204,14 +204,14 @@ class ODPPresentation:
         # TODO: See how dashed polylines and end markers for polylines work
         StrokeFactory.stroke(self, self.dwg, item, polyline, 1/polyline_scale, style_src)
         if "xml:id" in item.attrs:
-            self.xml_ids[item["xml:id"]] = {
+            self.xml_ids["obj_"+item["xml:id"]] = {
                 "item": polyline,
                 "x": units_to_float(item.attrs["svg:x"]),
                 "y": units_to_float(item.attrs["svg:y"]),
                 "width": polyline_w,
                 "height": units_to_float(item.attrs["svg:height"])
             }
-            polyline.__setitem__("id", item["xml:id"])
+            polyline.__setitem__("id", "obj_"+item["xml:id"])
         layer_g.add(polyline)
 
 
@@ -240,14 +240,14 @@ class ODPPresentation:
             polygon_w/polygon_scale, polygon_h/polygon_scale, style_tag)
         StrokeFactory.stroke(self, self.dwg, item, polygon, 1/polygon_scale, style_src)
         if "xml:id" in item.attrs:
-            self.xml_ids[item["xml:id"]] = {
+            self.xml_ids["obj_"+item["xml:id"]] = {
                 "item": polygon,
                 "x": units_to_float(item.attrs["svg:x"]),
                 "y": units_to_float(item.attrs["svg:y"]),
                 "width": polygon_w,
                 "height": polygon_h
             }
-            polygon.__setitem__("id", item["xml:id"])
+            polygon.__setitem__("id", "obj_"+item["xml:id"])
         layer_g.add(polygon)
 
 
@@ -285,13 +285,14 @@ class ODPPresentation:
             first_timed_anim = None
             begin_at = "indefinite" # First node is initiated with a click
             anim_json_data = {}
+            anim_order = {}
             for timed_anim in timed_anims:
                 parallel_anims = timed_anim.findChildren({"anim:par"}, recursive=False)
                 begin_delay = units_to_float(timed_anim["smil:begin"])
                 for anim_data in parallel_anims:
                     # Find animation target
                     anim_subnode = anim_data.findChild()
-                    anim_target = anim_subnode["smil:targetelement"]
+                    anim_target = "obj_" + anim_subnode["smil:targetelement"]
                     anim_preset = anim_data["presentation:preset-id"]
                     anim_delay = begin_delay + units_to_float(anim_data["smil:begin"])
                     if anim_target in self.xml_ids:
@@ -303,14 +304,25 @@ class ODPPresentation:
                             if not first_timed_anim:
                                 first_timed_anim = anim_id
                                 anim_json_data["id"] = anim_id
-                                
                             if anim_preset.find("ooo-entrance") == -1\
                                 and anim_target not in init_hidden:
                                 init_visible.append(anim_target)
                             elif anim_target not in init_visible and anim_target not in init_hidden:
                                 init_hidden.append(anim_target)
-            page_json_data["animations"].append(anim_json_data)
+                            # Track order of sub-animations
+                            if anim_delay in anim_order:
+                                anim_order[anim_delay].append(anim_id)
+                            else:
+                                anim_order[anim_delay] = [anim_id]
+            anim_json_data["anim_order"] = []
+            for time_index in sorted(anim_order.keys()):
+                anim_json_data["anim_order"] += anim_order[time_index]
+            if "id" in anim_json_data:
+                # Condition prevents "empty" animations begin added (those that refer to
+                # un-implemented types of animation)
+                page_json_data["animations"].append(anim_json_data)
         page_json_data["init_hidden"] = init_hidden
+        page_json_data["init_visible"] = init_visible
 
 
     def generate_page(self, page, layer_g, layer_bg, on_first_page, json_data):

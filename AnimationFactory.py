@@ -36,13 +36,11 @@ class AnimationFactory():
             "ooo-entrance-fade-in": self.entrance_fade_in,
             "ooo-entrance-fade-in-and-zoom": self.entrance_fade_in_and_zoom,
             "ooo-entrance-expand": self.entrance_expand,
-            "ooo-entrance-thread": self.entrance_thread,
             "ooo-entrance-stretchy": self.entrance_stretchy,
             "ooo-entrance-ease-in": self.entrance_ease_in,
             "ooo-entrance-rise-up": self.entrance_rise_up,
             "ooo-entrance-ascend": self.entrance_ascend,
             "ooo-entrance-descend": self.entrance_descend,
-            "ooo-entrance-spin-in": self.entrance_spin_in,
             "ooo-entrance-compress": self.entrance_compress,
 
             "ooo-exit-disappear": self.exit_disappear,
@@ -219,11 +217,219 @@ class AnimationFactory():
         return anim_id
 
 
+    def add_simple_entrance_rev_fwd(self, pres, item_data, anim_id):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_rev"
+        ))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_fwd"
+        ))
+
+
+    def add_simple_exit_rev_fwd(self, pres, item_data, anim_id):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_rev"
+        ))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"
+        ))
+
+
+    def add_tso_entrance_rev_fwd(self, pres, item_data, anim_id, t_vals, s_vals, o_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[2])+" "+str(s_vals[3]), to=str(s_vals[0])+" "+str(s_vals[1]),
+            dur="0.001s", begin=anim_id+"_rev.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[0]), begin=anim_id+"_rev.begin"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[1]), begin=anim_id+"_fwd.begin"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[0])+" "+str(s_vals[1]), to=str(s_vals[2])+" "+str(s_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
+    def add_tso_exit_rev_fwd(self, pres, item_data, anim_id, t_vals, s_vals, o_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[2])+" "+str(s_vals[3]), to=str(s_vals[0])+" "+str(s_vals[1]),
+            dur="0.001s", begin=anim_id+"_rev.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[0]), begin=anim_id+"_rev.begin"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[1]), begin=anim_id+"_fwd.begin"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[0])+" "+str(s_vals[1]), to=str(s_vals[2])+" "+str(s_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
+    def add_to_entrance_rev_fwd(self, pres, item_data, anim_id, t_vals, o_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[0]), begin=anim_id+"_rev.begin"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[1]), begin=anim_id+"_fwd.begin"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
+    def add_to_exit_rev_fwd(self, pres, item_data, anim_id, t_vals, o_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[0]), begin=anim_id+"_rev.begin"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to=str(o_vals[1]), begin=anim_id+"_fwd.begin"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
+    def add_ts_entrance_rev_fwd(self, pres, item_data, anim_id, t_vals, s_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[2])+" "+str(s_vals[3]), to=str(s_vals[0])+" "+str(s_vals[1]),
+            dur="0.001s", begin=anim_id+"_rev.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[0])+" "+str(s_vals[1]), to=str(s_vals[2])+" "+str(s_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
+    def add_ts_exit_rev_fwd(self, pres, item_data, anim_id, t_vals, s_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[2])+" "+str(s_vals[3]), to=str(s_vals[0])+" "+str(s_vals[1]),
+            dur="0.001s", begin=anim_id+"_rev.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "scale", "transform", additive="sum",
+            from_=str(s_vals[0])+" "+str(s_vals[1]), to=str(s_vals[2])+" "+str(s_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
+    def add_t_entrance_rev_fwd(self, pres, item_data, anim_id, t_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
+    def add_t_exit_rev_fwd(self, pres, item_data, anim_id, t_vals):
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[2])+" "+str(t_vals[3]), to=str(t_vals[0])+" "+str(t_vals[1]),
+            dur="0.001s", begin="indefinite", id=anim_id+"_rev", fill="freeze"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.animateTransform(
+            "translate", "transform",
+            from_=str(t_vals[0])+" "+str(t_vals[1]), to=str(t_vals[2])+" "+str(t_vals[3]),
+            dur="0.001s", begin=anim_id+"_fwd.begin", fill="freeze"))
+
+
     def entrance_appear(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="visible", begin=begin_at, id=anim_id
         ))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -241,14 +447,16 @@ class AnimationFactory():
             start_y = pres.d_height - item_data["y"]
         # Make item visible
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin=begin_at, id=anim_id
-        ))
+            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
         # Then fly in item
         item_data["item"].add(pres.dwg.animateTransform(
             "translate", "transform",
             from_=str(start_x)+" "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze",
             calcMode="spline", keySplines="0.5 0 0.5 1"))
+        # Add quick reverse and forward
+        self.add_t_entrance_rev_fwd(pres, item_data, anim_id,\
+            [start_x, start_y, 0, 0])
         return anim_id
 
 
@@ -284,6 +492,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -319,6 +529,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -357,6 +569,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -387,6 +601,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -423,6 +639,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -447,6 +665,9 @@ class AnimationFactory():
             "translate", "transform",
             from_=str(start_x)+" "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_t_entrance_rev_fwd(pres, item_data, anim_id,\
+            [start_x, start_y, 0, 0])
         return anim_id
 
 
@@ -482,6 +703,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -523,6 +746,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -535,6 +760,12 @@ class AnimationFactory():
         # Then animate flash once
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".begin+"+anim_dur))
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_rev"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"))
         return anim_id
 
 
@@ -582,6 +813,8 @@ class AnimationFactory():
             "translate", "transform",
             from_=str(start_x)+" "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_t_entrance_rev_fwd(pres, item_data, anim_id, [start_x, start_y, 0, 0])
         return anim_id
 
 
@@ -625,6 +858,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -657,12 +892,13 @@ class AnimationFactory():
             mask.add(cur_bar)
             step_offset += 1
             del bar_vals[idx]
-
         pres.dwg.defs.add(mask)
         # Set mask at start of animation
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -720,6 +956,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -774,6 +1012,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -853,6 +1093,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1093,6 +1335,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1131,6 +1375,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_entrance_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1175,6 +1421,16 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.animate(
             attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
             from_="0", to="1"))
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to="0", begin="indefinite", id=anim_id+"_rev"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to="1", begin=anim_id+"_fwd.begin"))
         return anim_id
 
 
@@ -1199,6 +1455,9 @@ class AnimationFactory():
             from_="0 0", to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_tso_entrance_rev_fwd(pres, item_data, anim_id,\
+            [start_x, start_y, 0, 0], [0, 0, 1, 1], [0, 1])
         return anim_id
 
 
@@ -1222,41 +1481,9 @@ class AnimationFactory():
             from_="0.7 1", to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
-        return anim_id
-
-
-    def entrance_thread(self, subtype, pres, item_data, anim_data, begin_at):
-        anim_id = self.generate_anim_id()
-        anim_dur = units_to_float(anim_data.find({"anim:animate"})["smil:dur"])
-        segment_dur = str(anim_dur/2)+"s"
-        # Make item visible
-        item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
-        # Then do thread
-        start_x = -0.3 * pres.d_width
-        mid_x = 0
-        start_w = (item_data["width"] + 0.3*pres.d_width) / item_data["width"]
-        mid_w = start_w
-        start_h = 0.05
-        mid_h = start_h
-        start_y = -0.475 * item_data["height"]
-        mid_y = start_y
-        # item_data["item"].add(pres.dwg.animateTransform(
-        #     "translate", "transform",
-        #     values=str(-item_data["x"]-item_data["width"]/2)+" "+str(-item_data["y"]-item_data["height"]/2)+";"+str(-item_data["x"]-item_data["width"]/2)+" "+str(-item_data["y"]-item_data["height"]/2)+";"+str(-item_data["x"]-item_data["width"]/2)+" "+str(-item_data["y"]-item_data["height"]/2),
-        #     additive="sum",
-        #     dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
-        item_data["item"].add(pres.dwg.animateTransform(
-            "scale", "transform",
-            values="1 0.05;1 0.05;1 1",
-            # values=str(start_w)+" "+str(start_h)+";"+str(mid_w)+" "+str(mid_h)+";1 1",
-            # additive="sum",
-            dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
-        item_data["item"].add(pres.dwg.animateTransform(
-            "translate", "transform",
-            values=str(0)+" "+str((item_data["y"]+(item_data["height"]/2))/0.05),#+";"+str(0)+" "+str(item_data["y"]/0.05)+";0 0",
-            additive="sum",
-            dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_tso_entrance_rev_fwd(pres, item_data, anim_id,\
+            [start_x, 0, 0, 0], [0.7, 1, 1, 1], [0, 1])
         return anim_id
 
 
@@ -1315,6 +1542,9 @@ class AnimationFactory():
             from_=str(start_w)+" "+str(start_h), to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_ts_entrance_rev_fwd(pres, item_data, anim_id,\
+            [start_x, start_y, 0, 0], [start_w, start_h, 1, 1])
         return anim_id
 
 
@@ -1342,6 +1572,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
             begin=anim_id+".begin", dur=anim_dur))
+        # Add quick reverse and forward
+        self.add_t_entrance_rev_fwd(pres, item_data, anim_id, [start_x, 0, 0, 0])
         return anim_id
 
 
@@ -1369,6 +1601,9 @@ class AnimationFactory():
             from_="0 "+str(mid_y), to="0 0",
             dur=second_dur, begin=anim_id+"_1.end", fill="freeze",
             calcMode="spline", keySplines="0 0.2 0.8 1"))
+        # Add quick reverse and forward
+        self.add_to_entrance_rev_fwd(pres, item_data, anim_id,\
+            [0, start_y, 0, 0], [0, 1])
         return anim_id
 
 
@@ -1387,6 +1622,9 @@ class AnimationFactory():
             "translate", "transform",
             from_="0 "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_to_entrance_rev_fwd(pres, item_data, anim_id,\
+            [0, start_y, 0, 0], [0, 1])
         return anim_id
 
 
@@ -1405,39 +1643,9 @@ class AnimationFactory():
             "translate", "transform",
             from_="0 "+str(start_y), to="0 0",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
-        return anim_id
-
-
-    def entrance_spin_in(self, subtype, pres, item_data, anim_data, begin_at):
-        anim_id = self.generate_anim_id()
-        anim_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
-        # Make item visible
-        item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin=begin_at, id=anim_id))
-        # Then do spin in
-        # TODO: Get this to work!!!
-        item_data["item"].add(pres.dwg.animate(
-            attributeName="opacity", begin=anim_id+".begin", dur=anim_dur, fill="freeze",
-            from_="0", to="1"))
-        start_x = item_data["x"] + item_data["width"]/2
-        start_y = item_data["y"] + item_data["height"]/2
-        item_data["item"].add(pres.dwg.animateTransform(
-            "rotate", "transform",
-            from_="360 0 0", to="0 0 0",
-            # from_="0 "+str(item_data["width"]/2)+" "+str(item_data["height"]/2),
-            # to="360 "+str(item_data["width"]/2)+" "+str(item_data["height"]/2),
-            # additive="sum",
-            dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
-        item_data["item"].add(pres.dwg.animateTransform(
-            "scale", "transform",
-            from_="0 0", to="1 1",
-            additive="sum",
-            dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
-        item_data["item"].add(pres.dwg.animateTransform(
-            "translate", "transform",
-            from_=str(start_x)+" "+str(start_y), to="0 0",
-            additive="sum",
-            dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_to_entrance_rev_fwd(pres, item_data, anim_id,\
+            [0, start_y, 0, 0], [0, 1])
         return anim_id
 
 
@@ -1461,6 +1669,9 @@ class AnimationFactory():
             from_="1.3 1", to="1 1",
             additive="sum",
             dur=anim_dur, begin=anim_id+".begin", fill="freeze"))
+        # Add quick reverse and forward
+        self.add_tso_entrance_rev_fwd(pres, item_data, anim_id,\
+            [start_x, 0, 0, 0], [1.3, 1, 1, 1], [0, 1])
         return anim_id
 
 
@@ -1469,6 +1680,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=begin_at, id=anim_id
         ))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1494,6 +1707,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"
         ))
+        # Add quick reverse and forward
+        self.add_t_exit_rev_fwd(pres, item_data, anim_id, [0, 0, end_x, end_y])
         return anim_id
 
 
@@ -1543,6 +1758,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1578,6 +1795,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1631,6 +1850,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1661,6 +1882,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1685,6 +1908,8 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"
         ))
+        # Add quick reverse and forward
+        self.add_t_exit_rev_fwd(pres, item_data, anim_id, [0, 0, end_x, end_y])
         return anim_id
 
 
@@ -1719,6 +1944,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1765,7 +1992,9 @@ class AnimationFactory():
             begin=anim_id+".begin", dur=anim_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
-            attributeName="visibility", to="visible", begin=anim_id+".begin+"+anim_dur))
+            attributeName="visibility", to="hidden", begin=anim_id+".begin+"+anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1780,6 +2009,12 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".begin+"+str(anim_dur)+"s"))
+        # Create quick reverse
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_rev"))
+        # Create quick forward
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"))
         return anim_id
 
 
@@ -1827,6 +2062,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_t_exit_rev_fwd(pres, item_data, anim_id, [0, 0, end_x, end_y])
         return anim_id
 
 
@@ -1868,6 +2105,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end", id=anim_id))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1916,6 +2155,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".begin+"+anim_dur))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -1971,6 +2212,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -2028,13 +2271,16 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
     def exit_wedge(self, subtype, pres, item_data, anim_data, begin_at):
         anim_id = self.generate_anim_id()
-        anim_dur = units_to_float(anim_data.find({"anim:transitionfilter"})["smil:dur"])
-        anim_dur = str(anim_dur / 6) + "s"
+        full_dur = anim_data.find({"anim:transitionfilter"})["smil:dur"]
+        anim_dur = str(units_to_float(full_dur) / 6) + "s"
+        
         # Then animate wedge
         mask = pres.dwg.mask(x=0, y=0, width="100%", height="100%",\
             maskContentUnits="objectBoundingBox", id=anim_id+"_mask")
@@ -2103,10 +2349,12 @@ class AnimationFactory():
         # Set mask at start of animation
         item_data["item"].add(pres.dwg.set(
             attributeName="mask", to="url(#" + anim_id+"_mask)",
-            begin=anim_id+".begin", dur=anim_dur))
+            begin=anim_id+".begin", dur=full_dur))
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+"_l6.end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -2348,6 +2596,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+"_e.end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -2386,6 +2636,8 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_simple_exit_rev_fwd(pres, item_data, anim_id)
         return anim_id
 
 
@@ -2430,6 +2682,16 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Create quick reverse of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to="1", begin="indefinite", id=anim_id+"_rev"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin=anim_id+"_rev.begin"))
+        # Create quick fast forward of animation
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="hidden", begin="indefinite", id=anim_id+"_fwd"))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="opacity", to="0", begin=anim_id+"_fwd.begin"))
         return anim_id
 
 
@@ -2454,6 +2716,9 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_tso_exit_rev_fwd(pres, item_data, anim_id,\
+            [0, 0, end_x, end_y], [1, 1, 0, 0], [1, 0])
         return anim_id
 
 
@@ -2477,6 +2742,9 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_tso_exit_rev_fwd(pres, item_data, anim_id,\
+            [0, 0, end_x, 0], [1, 1, 0.7, 1], [1, 0])
         return anim_id
 
 
@@ -2495,6 +2763,9 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end", id=anim_id))
+        # Add quick reverse and forward
+        self.add_to_exit_rev_fwd(pres, item_data, anim_id,\
+            [0, 0, end_x, 0], [1, 0])
         return anim_id
 
 
@@ -2522,6 +2793,9 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_to_exit_rev_fwd(pres, item_data, anim_id,\
+            [0, 0, 0, end_y], [1, 0])
         return anim_id
 
 
@@ -2540,6 +2814,9 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_to_exit_rev_fwd(pres, item_data, anim_id,\
+            [0, 0, 0, end_y], [1, 0])
         return anim_id
 
 
@@ -2558,6 +2835,9 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_to_exit_rev_fwd(pres, item_data, anim_id,\
+            [0, 0, 0, end_y], [1, 0])
         return anim_id
 
 
@@ -2582,14 +2862,20 @@ class AnimationFactory():
         # Finally hide item
         item_data["item"].add(pres.dwg.set(
             attributeName="visibility", to="hidden", begin=anim_id+".end"))
+        # Add quick reverse and forward
+        self.add_tso_exit_rev_fwd(pres, item_data, anim_id,\
+            [0, 0, end_x, 0], [1, 1, 1.3, 1], [1, 0])
         return anim_id
 
 
     def motionpath(self, subtype, pres, item_data, anim_data, begin_at):
+        # TODO: Calculate endpoint of motionpath to create quick reverse
+        # and quick forward otion paths from [0, 0] <-> [end_x, end_y]
+        # If path ends in Z, then end_x = end_y = 0 i.e. no net movement
         anim_id = self.generate_anim_id()
         anim_dur = anim_data.find({"anim:animatemotion"})["smil:dur"]
         m_path = anim_data.find({"anim:animatemotion"})["svg:path"]
-        # Need to scale x,w:[0,1]->[0,d_width] and y,h:[0,1]->[0,d_height]
+        # Scale x,w:[0,1]->[0,d_width] and y,h:[0,1]->[0,d_height]
         path_sections = re.findall(r'[a-zA-Z][?\$f0-9 -.]*', m_path)
         scaled_path = ""
         for section in path_sections:
@@ -2621,4 +2907,12 @@ class AnimationFactory():
         item_data["item"].add(pres.dwg.animateMotion(
             path=scaled_path,
             begin=begin_at, id=anim_id, dur=anim_dur, fill="freeze"))
+        # TODO: Fully implement the quick reverse and forward animations based on start/end points
+        #  of motion path
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_rev"
+        ))
+        item_data["item"].add(pres.dwg.set(
+            attributeName="visibility", to="visible", begin="indefinite", id=anim_id+"_fwd"
+        ))
         return anim_id

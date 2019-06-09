@@ -341,14 +341,14 @@ class ShapeParser():
         # Store xml:id, if it exists
         # TODO: Do we need to group the overlaid text with this...?
         if "xml:id" in shape.attrs:
-            pres.xml_ids[shape["xml:id"]] = {
+            pres.xml_ids["obj_"+shape["xml:id"]] = {
                 "item": shape_path,
                 "x": base_x,
                 "y": base_y,
                 "width": units_to_float(shape["svg:width"]),
                 "height": units_to_float(shape["svg:height"])
             }
-            shape_path.__setitem__("id", shape["xml:id"])
+            shape_path.__setitem__("id", "obj_"+shape["xml:id"])
 
         # Add custom shape to main drawing
         layer.add(shape_path)
